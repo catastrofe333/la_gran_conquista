@@ -1,0 +1,922 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>Gran Conquista</title>
+    <link href="https://fonts.googleapis.com/css2?family=Press+Start+2P&display=swap" rel="stylesheet">
+    <style>
+        *,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+        :root{
+            --sky:#5BC8E8;--sky-dark:#3A9EBE;--sky-light:#A8E4F5;
+            --pink:#F4A7C3;--pink-dark:#D4729A;--pink-light:#FFD6E8;
+            --rose:#E8527A;--rose-dark:#C03060;
+            --gold:#F0C040;--gold-dark:#C89020;
+            --black:#1A1020;--white:#FFF8FF;--bg:#0D0816;
+            --px:'Press Start 2P',monospace;
+        }
+        html,body{width:100%;height:100%;overflow:hidden;background:var(--bg);font-family:var(--px);touch-action:manipulation;-webkit-tap-highlight-color:transparent}
+
+        /* ══ SCREENS ══ */
+        .screen{position:fixed;inset:0;display:none;align-items:center;justify-content:center;flex-direction:column;overflow:hidden}
+        .screen.active{display:flex}
+
+        /* ══ BUTTONS ══ */
+        .btn{font-family:var(--px);font-size:clamp(10px,3.6vw,15px);border:none;cursor:pointer;padding:clamp(12px,3.2vw,18px) clamp(24px,5.5vw,40px);position:relative;letter-spacing:1px;transition:transform .06s;min-width:clamp(200px,60vw,260px);text-align:center}
+        .btn:active{transform:translateY(3px)}
+        .btn-pink{background:var(--pink);color:var(--black);box-shadow:inset -3px -3px 0 var(--pink-dark),inset 3px 3px 0 var(--pink-light),0 5px 0 var(--rose-dark),0 7px 0 rgba(0,0,0,0.5)}
+        .btn-pink:hover{background:var(--pink-light)}
+        .btn-sky{background:var(--sky-dark);color:var(--white);box-shadow:inset -3px -3px 0 #2A7A9E,inset 3px 3px 0 var(--sky-light),0 5px 0 #1A5A7E,0 7px 0 rgba(0,0,0,0.5)}
+        .btn-sky:hover{background:var(--sky-light);color:var(--black)}
+        .btn-gold{background:var(--gold);color:var(--black);box-shadow:inset -3px -3px 0 var(--gold-dark),inset 3px 3px 0 #FFF0A0,0 5px 0 #906010,0 7px 0 rgba(0,0,0,0.5)}
+        .btn-gold:hover{background:#FFF0A0}
+        .btn-sm{font-size:clamp(8px,2.6vw,11px);padding:clamp(10px,2.4vw,13px) clamp(16px,3.8vw,22px);min-width:0}
+        .btn:disabled{opacity:.4;cursor:not-allowed;transform:none}
+
+        /* ══ S1: INICIO ══ */
+        #s-inicio{background:var(--bg)}
+        #sword-bg{position:absolute;inset:0;width:100%;height:100%;opacity:.12;pointer-events:none}
+        .inicio-content{position:relative;z-index:2;display:flex;flex-direction:column;align-items:center;gap:clamp(24px,6vh,48px)}
+        .title-frame{padding:clamp(22px,5vw,40px) clamp(32px,7vw,70px);text-align:center;position:relative}
+        .title-main{font-size:clamp(24px,8vw,56px);color:var(--gold);text-shadow:3px 3px 0 var(--rose-dark),6px 6px 0 rgba(0,0,0,0.7);line-height:1.35;animation:glow 3s ease-in-out infinite}
+        @keyframes glow{0%,100%{filter:drop-shadow(0 0 6px rgba(240,192,64,0.25))}50%{filter:drop-shadow(0 0 24px rgba(240,192,64,0.9))}}
+        .menu-btns{display:flex;flex-direction:column;gap:clamp(12px,3vh,18px);align-items:center}
+
+        /* ══ S2: LIBRO CERRADO ══ */
+        #s-libro-cerrado{background:var(--bg);cursor:pointer}
+        .book-closed-wrap{display:flex;flex-direction:column;align-items:center;gap:clamp(14px,3vh,24px)}
+        .book-float{animation:bookFloat 2.5s ease-in-out infinite}
+        @keyframes bookFloat{0%,100%{transform:translateY(0)}50%{transform:translateY(-12px)}}
+        .click-hint{font-size:clamp(7px,2vw,9px);color:var(--pink);animation:blink 1.2s step-end infinite;letter-spacing:2px}
+        @keyframes blink{0%,100%{opacity:1}50%{opacity:0}}
+
+        /* ══ S3: LIBRO ABIERTO ══ */
+        #s-libro-abierto{background:var(--bg);padding:clamp(8px,2vw,16px);overflow-y:auto;justify-content:center;align-items:center}
+        .book-wrap{display:flex;flex-direction:column;width:min(700px,96vw);margin:0 auto}
+        @media(min-width:580px){.book-wrap{flex-direction:row;height:min(560px,86vh)}}
+        .bk-left{background:#FFF8F0;border:3px solid var(--pink-dark);padding:clamp(14px,3vw,26px) clamp(12px,2.5vw,20px);display:flex;flex-direction:column;align-items:center;justify-content:center;gap:10px;flex-shrink:0}
+        @media(min-width:580px){.bk-left{width:36%;border-right:2px solid #D4B080;border-bottom:none}}
+        @media(max-width:579px){.bk-left{border-bottom:2px solid #D4B080}}
+        .bk-right{flex:1;background:#FFFDF5;border:3px solid var(--pink-dark);border-top:none;padding:clamp(14px,3vw,22px);overflow-y:auto}
+        @media(min-width:580px){.bk-right{border-left:none;border-top:3px solid var(--pink-dark)}}
+        .bk-l-title{font-size:clamp(11px,3vw,14px);color:#5A3010;text-align:center;line-height:2}
+        .bk-l-deco{font-size:clamp(8px,2.2vw,11px);color:var(--pink-dark);text-align:center;line-height:2;margin-top:4px}
+        .idx-title{font-size:clamp(10px,2.5vw,13px);color:#5A3010;margin-bottom:12px;text-align:center;line-height:2;padding-bottom:8px;border-bottom:2px dashed #D4B080}
+        .idx-item{display:block;width:100%;font-family:var(--px);font-size:clamp(7px,2vw,9px);color:#3A1A60;padding:clamp(10px,2.3vw,14px) 10px;cursor:pointer;border:2px solid transparent;background:none;text-align:left;line-height:1.8;margin-bottom:3px}
+        .idx-item:hover,.idx-item:active{background:#FFF0E0;border-color:#D4B080;color:#5A3010}
+        .idx-item::before{content:'⚔ ';color:var(--rose)}
+        .ct-heading{font-size:clamp(10px,2.5vw,13px);color:#5A3010;margin-bottom:12px;line-height:2;border-bottom:2px dashed #D4B080;padding-bottom:6px}
+        .ct-p{font-size:clamp(7px,2vw,9px);color:#2A1A10;line-height:2.6;margin-bottom:8px}
+        .ct-p b{color:#8B1A1A}
+        .bk-nav{display:flex;gap:8px;margin-top:12px;flex-wrap:wrap}
+        .bk-btn{font-family:var(--px);font-size:clamp(7px,2vw,9px);border:none;padding:clamp(8px,1.8vw,11px) clamp(12px,2.5vw,16px);cursor:pointer}
+        .bk-btn-pink{background:var(--pink);color:var(--black);box-shadow:0 3px 0 var(--pink-dark)}
+        .bk-btn-sky{background:var(--sky-dark);color:var(--white);box-shadow:0 3px 0 #1A5A7E}
+        .bk-btn:active{transform:translateY(2px);box-shadow:none}
+
+        /* ══ S4: JUGADORES — FIX 1: full screen, Fix 2: larger text ══ */
+        #s-players{
+            background:var(--black);
+            position:fixed; /* ensure full screen */
+            inset:0;
+            overflow:hidden;
+        }
+        .pl-wrap{
+            position:absolute;
+            inset:0;
+            display:flex;
+            flex-direction:column;
+        }
+        @media(min-width:500px){.pl-wrap{flex-direction:row}}
+
+        .pl-half{
+            flex:1;
+            display:flex;flex-direction:column;
+            align-items:center;justify-content:center;
+            gap:clamp(12px,3vh,22px);
+            padding:clamp(16px,4vw,40px) clamp(16px,4vw,36px);
+            /* extra bottom space for the battle button */
+            padding-bottom:clamp(80px,14vh,110px);
+        }
+        .pl-1{background:linear-gradient(160deg,#0A3A6A,#1A5A9E 60%,#2A7ABE)}
+        .pl-2{background:linear-gradient(160deg,#6A0A40,#A02060 60%,#D03080)}
+        .pl-divh{width:100%;height:4px;background:var(--black);flex-shrink:0}
+        .pl-divv{width:4px;height:100%;background:var(--black);flex-shrink:0}
+        @media(min-width:500px){.pl-divh{display:none}}
+        @media(max-width:499px){.pl-divv{display:none}}
+
+        .cmd{animation:bobble 2s ease-in-out infinite}
+        .cmd2{animation-delay:.6s}
+        @keyframes bobble{0%,100%{transform:translateY(0)}50%{transform:translateY(-8px)}}
+
+        /* FIX 2: larger labels & inputs */
+        .pl-label{font-size:clamp(10px,3.5vw,16px);letter-spacing:2px;color:var(--pink-light);text-shadow:2px 2px rgba(0,0,0,0.6);text-align:center}
+        .pl-input{
+            font-family:var(--px);
+            font-size:clamp(9px,2.8vw,13px);
+            background:rgba(0,0,0,0.5);
+            border:3px solid var(--pink);
+            color:var(--white);
+            padding:clamp(10px,2.5vw,14px) clamp(12px,3vw,16px);
+            outline:none;
+            width:clamp(170px,50vw,230px);
+            text-align:center;
+        }
+        .pl-input::placeholder{color:rgba(255,255,255,0.35);font-size:clamp(6px,1.8vw,9px)}
+
+        /* FIX 1 mobile: battle button fixed at bottom center */
+        .start-wrap{
+            position:fixed;
+            bottom:clamp(16px,4vh,36px);
+            left:50%;
+            transform:translateX(-50%);
+            z-index:20;
+            white-space:nowrap;
+        }
+
+        /* ══ S5: JUEGO ══ */
+        #s-game{flex-direction:column;align-items:stretch;padding:0;position:fixed;inset:0}
+
+        /* MAP — simple, 6 territorios */
+        .gmap{flex:1;position:relative;overflow:hidden;background:#2A6A2A;min-height:0}
+
+        /* FIX 2: larger sidebar text */
+        .s-tlbl{font-size:clamp(7px,2vw,9px);color:var(--pink-light);letter-spacing:2px;margin-bottom:3px}
+        .s-pname{font-size:clamp(12px,3.4vw,16px);color:var(--gold);text-shadow:2px 2px rgba(0,0,0,0.6);word-break:break-all}
+        .s-tnum{font-size:clamp(6px,1.8vw,8px);color:rgba(255,255,255,0.5);margin-top:2px}
+
+        /* FIX 2: larger section titles */
+        .s-sec-t{font-size:clamp(7px,2vw,10px);color:var(--pink);letter-spacing:1px;margin-bottom:7px}
+
+        .dice-sec{flex:0 0 auto;padding:clamp(7px,1.8vw,11px) clamp(9px,2.2vw,13px);border-right:2px solid rgba(244,167,195,0.15)}
+        @media(min-width:580px){.dice-sec{border-right:none;border-bottom:2px solid rgba(244,167,195,0.15)}}
+
+        .ap-sec{flex:1;padding:clamp(7px,1.8vw,11px) clamp(9px,2.2vw,13px)}
+        .ap-row{display:flex;gap:3px;justify-content:center;flex-wrap:wrap}
+        .ap-pip{width:clamp(10px,2vw,14px);height:clamp(10px,2vw,14px);background:var(--pink);box-shadow:inset -2px -2px 0 var(--pink-dark),inset 2px 2px 0 var(--pink-light);clip-path:polygon(2px 0%,calc(100% - 2px) 0%,100% 2px,100% calc(100% - 2px),calc(100% - 2px) 100%,2px 100%,0% calc(100% - 2px),0% 2px)}
+        .ap-pip.used{background:#333;box-shadow:inset -2px -2px 0 #111,inset 2px 2px 0 #555}
+        /* FIX 2: larger ap label */
+        .ap-lbl{font-size:clamp(7px,1.9vw,9px);color:rgba(255,255,255,0.5);text-align:center}
+
+        /* FIX 2: larger action buttons */
+        .act-btn{font-family:var(--px);font-size:clamp(8px,2.4vw,12px);padding:clamp(10px,2.2vw,13px) 12px;border:none;cursor:pointer;color:var(--white);text-align:left;position:relative;transition:transform .05s}
+        .act-btn:active:not(:disabled){transform:translateY(2px)}
+        .act-btn:disabled{opacity:.35;cursor:not-allowed}
+        .aa{background:var(--rose);box-shadow:inset -3px -3px 0 var(--rose-dark),inset 3px 3px 0 #FF7A9A,0 4px 0 rgba(0,0,0,0.5)}
+        .aa:not(:disabled):hover{background:#FF7A9A;color:var(--black)}
+        .as{background:var(--sky-dark);box-shadow:inset -3px -3px 0 #1A5A7E,inset 3px 3px 0 var(--sky-light),0 4px 0 rgba(0,0,0,0.5)}
+        .as:not(:disabled):hover{background:var(--sky-light);color:var(--black)}
+        .ae{background:#4A4060;box-shadow:inset -3px -3px 0 #2A2040,inset 3px 3px 0 #6A6080,0 4px 0 rgba(0,0,0,0.5);margin-top:2px}
+        .ae:hover{background:#6A6080}
+        .act-cost{position:absolute;right:6px;top:50%;transform:translateY(-50%);font-size:clamp(7px,1.9vw,9px);color:var(--gold);background:rgba(0,0,0,0.4);padding:2px 5px}
+
+        .glog{flex:1;overflow-y:auto;padding:6px 9px;display:flex;flex-direction:column;gap:3px;min-height:0}
+        /* FIX 2: larger log text */
+        .log-e{font-size:clamp(7px,1.9vw,9px);color:rgba(255,255,255,0.8);line-height:2;padding:4px 6px;border-left:2px solid var(--pink-dark);background:rgba(255,255,255,0.04)}
+        .log-e.lc{border-color:var(--rose);color:#FFB0B0}
+        .log-e.lq{border-color:var(--gold);color:var(--gold)}
+        .log-e.ls{border-color:#555;color:#999}
+
+        /* territory buttons */
+        .terr-btn{position:absolute;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:4px;cursor:pointer;font-family:var(--px);background:none;border:none;transition:transform .1s,filter .1s}
+        .terr-btn:active{transform:scale(1.08);filter:brightness(1.2)}
+        /* FIX 2: larger territory labels */
+        .t-lbl{font-size:clamp(7px,2.2vw,10px);background:rgba(26,16,32,0.9);color:var(--white);padding:5px 10px;border:2px solid var(--pink);box-shadow:2px 2px 0 rgba(0,0,0,0.5);pointer-events:none;white-space:nowrap}
+        .t-stats{display:flex;gap:6px;font-size:clamp(7px,2vw,9px);background:rgba(26,16,32,0.85);padding:4px 8px;border:1px solid rgba(244,167,195,0.4);pointer-events:none}
+        .t-st{color:var(--gold)}.t-st.s{color:var(--pink-light)}
+
+        /* ══ MODALS ══ */
+        .modal{background:#FFF8F8;border:4px solid var(--pink);box-shadow:0 0 0 2px var(--rose-dark),8px 8px 0 rgba(0,0,0,0.5);padding:clamp(18px,4vw,28px) clamp(14px,3.5vw,26px);width:min(480px,96vw);max-height:88vh;position:relative;overflow-y:auto;clip-path:polygon(10px 0%,calc(100% - 10px) 0%,100% 10px,100% calc(100% - 10px),calc(100% - 10px) 100%,10px 100%,0% calc(100% - 10px),0% 10px)}
+        /* FIX 2: larger modal text */
+        .m-title{font-size:clamp(10px,3.4vw,14px);color:var(--rose-dark);text-align:center;margin-bottom:14px;line-height:1.8}
+        .m-text{font-size:clamp(9px,2.6vw,11px);color:#2A1A10;text-align:center;line-height:2.4;margin-bottom:14px}
+        .m-text.dark{color:var(--pink-light)}
+        .m-text b{color:var(--rose)}
+        .m-btns{display:flex;gap:10px;justify-content:center;flex-wrap:wrap}
+        .ti-row{display:flex;gap:14px;justify-content:center;margin:14px 0;flex-wrap:wrap}
+        .ti-box{background:#F0E0F0;border:3px solid var(--pink-dark);padding:12px 18px;text-align:center}
+        .ti-lbl{font-size:clamp(7px,2vw,9px);color:var(--rose-dark);margin-bottom:6px}
+        .ti-val{font-size:clamp(22px,6vw,30px);color:var(--black)}
+        .sel-item{font-family:var(--px);font-size:clamp(8px,2.4vw,10px);padding:clamp(10px,2.4vw,14px) clamp(14px,3.2vw,18px);cursor:pointer;border:2px solid var(--pink-dark);background:#FFF0F8;color:var(--black);text-align:left;line-height:1.8}
+        .newton-box{background:#0A1A2A;border:2px solid var(--sky-dark);padding:8px 11px;margin:9px 0;font-size:clamp(7px,1.8vw,9px);color:#7CFFB0;font-family:'Courier New',monospace;line-height:2;max-height:clamp(80px,22vh,110px);overflow-y:auto;text-align:left}
+        .res-badge{text-align:center;padding:12px;margin:9px 0;font-size:clamp(11px,3.4vw,15px);border:3px solid}
+        .res-det{font-size:clamp(7px,2vw,9px);color:#CCC;line-height:2.2;text-align:center;margin-top:5px;white-space:pre-line}
+        .turn-msg{background:#0A0A1A;border:4px solid var(--gold);box-shadow:0 0 0 2px var(--gold-dark),0 0 30px rgba(240,192,64,0.3);padding:clamp(20px,4vw,30px) clamp(22px,5vw,36px);text-align:center;width:min(400px,94vw)}
+        .tm-icon{font-size:clamp(36px,9vw,52px);margin-bottom:12px}
+        .tm-name{font-size:clamp(11px,3.2vw,15px);color:var(--gold);margin-bottom:10px;line-height:1.8}
+        .tm-msg{font-size:clamp(8px,2.4vw,10px);color:var(--pink-light);line-height:2.4}
+
+        /* ══ VICTORIA ══ */
+        #s-victoria{background:radial-gradient(ellipse at center,#2A0A30,#0A0010);overflow:hidden}
+        .vic-stars{position:absolute;inset:0;pointer-events:none}
+        .vic-content{position:relative;z-index:2;display:flex;flex-direction:column;align-items:center;gap:clamp(12px,3vh,20px);text-align:center;padding:20px}
+        .vic-icon{font-size:clamp(52px,12vw,80px);animation:vPop 1s ease-out;filter:drop-shadow(0 0 20px var(--gold))}
+        @keyframes vPop{from{transform:scale(0) rotate(-20deg)}to{transform:scale(1) rotate(0)}}
+        .vic-crown{font-size:clamp(8px,2.5vw,12px);color:var(--gold);letter-spacing:3px;animation:fIn .8s .3s both}
+        .vic-player{font-size:clamp(16px,5vw,32px);color:var(--pink-light);line-height:1.5;animation:fIn .8s .6s both;text-shadow:3px 3px var(--rose-dark)}
+        .vic-reached{font-size:clamp(7px,2vw,10px);color:rgba(255,255,255,0.6);animation:fIn .8s .9s both;letter-spacing:2px}
+        .vic-title{font-size:clamp(20px,6vw,44px);color:var(--gold);text-shadow:4px 4px var(--gold-dark),6px 6px rgba(0,0,0,0.5);animation:glow 2s ease-in-out infinite,fIn .8s 1.2s both}
+        .vic-btn{animation:fIn .8s 1.8s both}
+        @keyframes fIn{from{opacity:0;transform:translateY(20px)}to{opacity:1;transform:translateY(0)}}
+
+        ::-webkit-scrollbar{width:5px}::-webkit-scrollbar-track{background:#1A1020}::-webkit-scrollbar-thumb{background:var(--pink-dark)}
+    </style>
+</head>
+<body>
+
+<!-- ══ S1: INICIO ══ -->
+<div class="screen active" id="s-inicio">
+    <svg id="sword-bg" viewBox="0 0 400 400" xmlns="http://www.w3.org/2000/svg" preserveAspectRatio="xMidYMid slice">
+        <defs>
+            <pattern id="sp" x="0" y="0" width="100" height="100" patternUnits="userSpaceOnUse">
+                <g transform="translate(26,26) rotate(45)">
+                    <rect x="-2.5" y="-34" width="5" height="52" fill="#F4A7C3"/>
+                    <rect x="-9" y="12" width="18" height="4" fill="#F0C040"/>
+                    <rect x="-1.5" y="16" width="3" height="14" fill="#D4729A"/>
+                    <polygon points="0,-34 -3.5,-24 3.5,-24" fill="#FFF0FF"/>
+                </g>
+                <g transform="translate(76,76) rotate(-45)">
+                    <rect x="-2.5" y="-34" width="5" height="52" fill="#F4A7C3"/>
+                    <rect x="-9" y="12" width="18" height="4" fill="#F0C040"/>
+                    <rect x="-1.5" y="16" width="3" height="14" fill="#D4729A"/>
+                    <polygon points="0,-34 -3.5,-24 3.5,-24" fill="#FFF0FF"/>
+                </g>
+                <text x="6" y="14" font-size="7" fill="#F4A7C3">✦</text>
+                <text x="82" y="92" font-size="7" fill="#F4A7C3">✦</text>
+                <text x="46" y="52" font-size="5" fill="#F0C040">★</text>
+            </pattern>
+        </defs>
+        <rect width="400" height="400" fill="url(#sp)"/>
+    </svg>
+    <div class="inicio-content">
+        <div class="title-frame">
+            <div class="title-main">Gran<br>Conquista</div>
+        </div>
+        <div class="menu-btns">
+            <button class="btn btn-pink" onclick="showScreen('s-players')">⚔ &nbsp;Jugar</button>
+            <button class="btn btn-sky" onclick="showScreen('s-libro-cerrado')">📖 &nbsp;Guía del Conquistador</button>
+        </div>
+    </div>
+</div>
+
+<!-- ══ S2: LIBRO CERRADO ══ -->
+<div class="screen" id="s-libro-cerrado" onclick="openBook()">
+    <div class="book-closed-wrap">
+        <svg class="book-float" viewBox="0 0 220 280" style="width:clamp(150px,38vw,210px);height:auto">
+            <rect x="18" y="8" width="184" height="252" rx="4" fill="#5C3A1E"/>
+            <rect x="18" y="8" width="26" height="252" rx="2" fill="#3B2110"/>
+            <rect x="50" y="24" width="138" height="196" rx="2" fill="#4A2A10"/>
+            <rect x="60" y="34" width="118" height="176" fill="none" stroke="#F4A7C3" stroke-width="2.5"/>
+            <rect x="67" y="41" width="104" height="162" fill="none" stroke="#F4A7C3" stroke-width="1" stroke-dasharray="4 3"/>
+            <circle cx="119" cy="124" r="30" fill="#D4729A"/>
+            <circle cx="119" cy="124" r="22" fill="#F4A7C3"/>
+            <text x="119" y="132" text-anchor="middle" font-size="20" fill="#1A1020">✦</text>
+            <rect x="46" y="230" width="148" height="26" fill="#C89020"/>
+            <rect x="48" y="232" width="144" height="22" fill="none" stroke="#F0C040" stroke-width="1"/>
+            <rect x="181" y="112" width="18" height="12" rx="2" fill="#C89020"/>
+            <rect x="183" y="114" width="14" height="8" rx="1" fill="#F0C040"/>
+            <rect x="200" y="12" width="7" height="244" fill="#FFF8E0"/>
+            <g stroke="#E8D0A0" stroke-width="1">
+                <line x1="200" y1="28" x2="207" y2="28"/><line x1="200" y1="44" x2="207" y2="44"/><line x1="200" y1="60" x2="207" y2="60"/>
+                <line x1="200" y1="76" x2="207" y2="76"/><line x1="200" y1="92" x2="207" y2="92"/><line x1="200" y1="108" x2="207" y2="108"/>
+                <line x1="200" y1="124" x2="207" y2="124"/><line x1="200" y1="140" x2="207" y2="140"/><line x1="200" y1="156" x2="207" y2="156"/>
+                <line x1="200" y1="172" x2="207" y2="172"/><line x1="200" y1="188" x2="207" y2="188"/><line x1="200" y1="204" x2="207" y2="204"/>
+                <line x1="200" y1="220" x2="207" y2="220"/><line x1="200" y1="236" x2="207" y2="236"/>
+            </g>
+        </svg>
+        <div style="font-size:clamp(9px,3vw,12px);color:var(--gold);text-shadow:2px 2px rgba(0,0,0,0.8);text-align:center;line-height:2">Guía del Conquistador</div>
+        <div class="click-hint">— toca para abrir —</div>
+    </div>
+</div>
+
+<!-- ══ S3: LIBRO ABIERTO ══ -->
+<div class="screen" id="s-libro-abierto">
+    <div class="book-wrap">
+        <div class="bk-left">
+            <svg viewBox="0 0 100 110" style="width:clamp(60px,12vw,90px);height:auto">
+                <circle cx="50" cy="50" r="44" fill="#F4A7C3"/>
+                <circle cx="50" cy="50" r="36" fill="#D4729A"/>
+                <text x="50" y="60" text-anchor="middle" font-size="30" fill="#1A1020">⚔</text>
+                <circle cx="50" cy="50" r="44" fill="none" stroke="#C89020" stroke-width="2.5" stroke-dasharray="7 4"/>
+            </svg>
+            <div class="bk-l-title">GUÍA DEL<br>CONQUISTADOR</div>
+            <div class="bk-l-deco">Gran Conquista</div>
+            <div class="bk-nav" style="justify-content:center">
+                <button class="bk-btn bk-btn-sky" onclick="showScreen('s-inicio')">← Inicio</button>
+            </div>
+        </div>
+        <div class="bk-right">
+            <div id="book-index">
+                <div class="idx-title">ÍNDICE DE LA GUÍA</div>
+                <button class="idx-item" onclick="showGuide('turno')">El Turno de Batalla</button>
+                <button class="idx-item" onclick="showGuide('refuerzos')">Los Refuerzos</button>
+                <button class="idx-item" onclick="showGuide('deterioro')">El Deterioro</button>
+                <button class="idx-item" onclick="showGuide('dado')">El Dado Sagrado</button>
+                <button class="idx-item" onclick="showGuide('ataque')">El Sistema de Ataque</button>
+                <button class="idx-item" onclick="showGuide('newton')">La Magia de Newton</button>
+                <button class="idx-item" onclick="showGuide('conquista')">La Conquista</button>
+                <button class="idx-item" onclick="showGuide('victoria')">Cómo Ganar</button>
+            </div>
+            <div id="book-content" style="display:none">
+                <div id="book-content-inner"></div>
+                <div class="bk-nav">
+                    <button class="bk-btn bk-btn-pink" onclick="showIndex()">← Índice</button>
+                    <button class="bk-btn bk-btn-sky" onclick="showScreen('s-inicio')">⌂ Inicio</button>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- ══ S4: JUGADORES ══ -->
+<div class="screen" id="s-players">
+    <div class="pl-wrap">
+        <div class="pl-half pl-1">
+            <svg class="cmd" viewBox="0 0 130 160" style="width:clamp(90px,18vw,130px);height:auto">
+                <rect x="50" y="24" width="30" height="12" fill="#2A7ABE"/>
+                <rect x="46" y="32" width="38" height="38" fill="#FFCCA0"/>
+                <rect x="44" y="38" width="42" height="8" fill="#1A5A9E" opacity="0.5"/>
+                <rect x="52" y="42" width="8" height="6" fill="#1A1020"/>
+                <rect x="70" y="42" width="8" height="6" fill="#1A1020"/>
+                <rect x="42" y="70" width="46" height="42" fill="#2A7ABE"/>
+                <rect x="46" y="74" width="38" height="30" fill="#3A8ACE"/>
+                <rect x="48" y="76" width="34" height="26" fill="none" stroke="#60AAEE" stroke-width="2"/>
+                <rect x="20" y="74" width="22" height="12" fill="#2A7ABE"/>
+                <rect x="88" y="74" width="22" height="12" fill="#2A7ABE"/>
+                <rect x="16" y="72" width="18" height="28" rx="2" fill="#2A6AAE"/>
+                <rect x="18" y="74" width="14" height="24" rx="1" fill="none" stroke="#60AAEE" stroke-width="2"/>
+                <rect x="52" y="112" width="12" height="30" fill="#1A5A9E"/>
+                <rect x="70" y="112" width="12" height="30" fill="#1A5A9E"/>
+                <rect x="50" y="140" width="16" height="10" fill="#1A2A4A"/>
+                <rect x="68" y="140" width="16" height="10" fill="#1A2A4A"/>
+                <rect x="96" y="26" width="5" height="60" fill="#C0C0D0"/>
+                <rect x="90" y="60" width="16" height="4" fill="#C89020"/>
+                <polygon points="98,20 94,26 102,26" fill="#D0D0E0"/>
+            </svg>
+            <div class="pl-label">CABALLERO AZUL</div>
+            <input class="pl-input" id="p1-name" placeholder="Tu nombre..." maxlength="14"/>
+        </div>
+        <div class="pl-divh"></div>
+        <div class="pl-divv"></div>
+        <div class="pl-half pl-2">
+            <svg class="cmd cmd2" viewBox="0 0 130 160" style="width:clamp(90px,18vw,130px);height:auto">
+                <rect x="50" y="22" width="30" height="12" fill="#C03070"/>
+                <rect x="46" y="30" width="38" height="38" fill="#FFCCA0"/>
+                <path d="M44 30 Q65 18 86 30" fill="#8B2040"/>
+                <rect x="44" y="38" width="42" height="8" fill="#A02060" opacity="0.5"/>
+                <rect x="52" y="42" width="8" height="6" fill="#1A1020"/>
+                <rect x="70" y="42" width="8" height="6" fill="#1A1020"/>
+                <path d="M42 70 L65 64 L88 70 L88 98 Q65 104 42 98 Z" fill="#D03080"/>
+                <path d="M48 72 L65 68 L82 72 L82 92 Q65 98 48 92 Z" fill="#E84A9A"/>
+                <rect x="20" y="74" width="22" height="12" fill="#D03080"/>
+                <rect x="88" y="74" width="22" height="12" fill="#D03080"/>
+                <rect x="16" y="72" width="18" height="28" rx="2" fill="#A02060"/>
+                <rect x="18" y="74" width="14" height="24" rx="1" fill="none" stroke="#FFB0D0" stroke-width="2"/>
+                <rect x="52" y="112" width="12" height="30" fill="#6B0A30"/>
+                <rect x="70" y="112" width="12" height="30" fill="#6B0A30"/>
+                <rect x="50" y="140" width="16" height="10" fill="#3A0A20"/>
+                <rect x="68" y="140" width="16" height="10" fill="#3A0A20"/>
+                <rect x="96" y="26" width="4" height="60" fill="#C0C0D0"/>
+                <rect x="90" y="60" width="14" height="4" fill="#C89020"/>
+                <polygon points="98,20 94,26 101,26" fill="#D0D0E0"/>
+            </svg>
+            <div class="pl-label">CABALLERO ROSA</div>
+            <input class="pl-input" id="p2-name" placeholder="Tu nombre..." maxlength="14"/>
+        </div>
+    </div>
+    <!-- FIX 1: fixed bottom center, always visible -->
+    <div class="start-wrap">
+        <button class="btn btn-gold" onclick="startGame()">⚔ ¡A la Batalla! ⚔</button>
+    </div>
+</div>
+
+<!-- ══ S5: JUEGO ══ -->
+<div class="screen" id="s-game">
+
+    <!-- FIX 5: back arrow top left -->
+    <button class="back-arrow" onclick="showScreen('s-inicio')" title="Volver al inicio">&#8592;</button>
+
+    <!-- Player chip on map -->
+    <div class="map-player-chip">
+        <div class="mpc-label">TURNO</div>
+        <div class="mpc-name" id="mpc-name">—</div>
+        <div class="mpc-round" id="mpc-round">T1/30</div>
+    </div>
+
+    <!-- FIX 4: toggle panel button -->
+    <button class="panel-toggle" onclick="togglePanel()">⚔ Panel ▲</button>
+
+    <!-- FIX 3: clean map, no grid, no roads -->
+    <div class="gmap">
+        <svg id="gmap-svg" viewBox="0 0 100 100" preserveAspectRatio="xMidYMid meet" style="position:absolute;inset:0;width:100%;height:100%">
+            <defs>
+                <radialGradient id="mg" cx="50%" cy="50%" r="60%">
+                    <stop offset="0%" stop-color="#5AAA4A"/>
+                    <stop offset="100%" stop-color="#2A6A2A"/>
+                </radialGradient>
+                <pattern id="grass" x="0" y="0" width="6" height="6" patternUnits="userSpaceOnUse">
+                    <rect width="6" height="6" fill="none"/>
+                    <rect x="1" y="1" width="1" height="1" fill="rgba(255,255,255,0.05)"/>
+                    <rect x="4" y="3" width="1" height="1" fill="rgba(0,0,0,0.08)"/>
+                </pattern>
+            </defs>
+            <rect width="100" height="100" fill="url(#mg)"/>
+            <rect width="100" height="100" fill="url(#grass)"/>
+            <rect x="1" y="1" width="98" height="98" fill="none" stroke="#F4A7C3" stroke-width="1" stroke-dasharray="6 4" opacity="0.6"/>
+            <g id="terr-shapes"></g>
+        </svg>
+        <div id="terr-overlay" style="position:absolute;inset:0"></div>
+    </div>
+
+    <!-- FIX 4: panel, hidden by default on mobile -->
+    <div class="gside" id="gside">
+        <div class="side-hdr">
+            <div class="side-hdr-text">
+                <div class="s-tlbl">TURNO ACTUAL</div>
+                <div class="s-pname" id="s-pname">—</div>
+                <div class="s-tnum" id="s-tnum">Ronda 1</div>
+            </div>
+            <button class="side-close-btn" onclick="togglePanel()">✕</button>
+        </div>
+        <div class="side-main">
+            <div class="side-ctrl">
+                <div class="dice-sec">
+                    <div class="s-sec-t">⚄ Dado Sagrado</div>
+                    <div class="dice-wrap">
+                        <div class="dice" id="dice-el" onclick="rollDice()">?</div>
+                        <div class="ap-lbl" id="ap-lbl">Toca para tirar</div>
+                        <div class="ap-row" id="ap-row"></div>
+                    </div>
+                </div>
+                <div class="act-sec">
+                    <div class="s-sec-t">⚔ Acciones</div>
+                    <div class="act-list">
+                        <button class="act-btn aa" id="btn-atk" disabled onclick="openAttack()">⚔ ATACAR<span class="act-cost">2p</span></button>
+                        <button class="act-btn as" id="btn-stb" disabled onclick="openStabilize()">🛡 ESTAB.<span class="act-cost">1p</span></button>
+                        <button class="act-btn ae" onclick="endTurn()">➤ Fin de Turno</button>
+                    </div>
+                </div>
+            </div>
+            <div style="padding:6px 9px 2px;flex-shrink:0"><div class="s-sec-t">📜 Crónica de Batalla</div></div>
+            <div class="glog" id="glog"></div>
+        </div>
+    </div>
+</div>
+
+<!-- ══ VICTORIA ══ -->
+<div class="screen" id="s-victoria">
+    <div class="vic-stars" id="vic-stars"></div>
+    <div class="vic-content">
+        <div class="vic-icon">👑</div>
+        <div class="vic-crown">✦ &nbsp;GLORIA ETERNA&nbsp; ✦</div>
+        <div class="vic-player" id="vic-pname">—</div>
+        <div class="vic-reached">ha alcanzado...</div>
+        <div class="vic-title">Gran Conquista</div>
+        <button class="btn btn-pink vic-btn" onclick="showScreen('s-inicio')">⚔ Jugar de Nuevo</button>
+    </div>
+</div>
+
+<!-- ══ MODALS ══ -->
+<div class="overlay" id="ov-turn"><div class="turn-msg">
+    <div class="tm-icon" id="tm-icon">⚔</div>
+    <div class="tm-name" id="tm-name">—</div>
+    <div class="tm-msg" id="tm-msg">—</div>
+    <br><button class="btn btn-gold btn-sm" id="tm-btn">¡A la batalla!</button>
+</div></div>
+
+<div class="overlay" id="ov-terr"><div class="modal">
+    <div class="m-title" id="ot-title">—</div>
+    <div class="m-text" id="ot-owner">—</div>
+    <div class="ti-row">
+        <div class="ti-box"><div class="ti-lbl">⚔ TROPAS</div><div class="ti-val" id="ot-troops">—</div></div>
+        <div class="ti-box"><div class="ti-lbl">🛡 ESTABILIDAD</div><div class="ti-val" id="ot-stab">—</div></div>
+    </div>
+    <div class="m-btns"><button class="btn btn-pink btn-sm" onclick="closeOv('ov-terr')">Cerrar</button></div>
+</div></div>
+
+<div class="overlay" id="ov-src"><div class="modal modal-dark">
+    <div class="m-title dark">⚔ TERRITORIO ATACANTE</div>
+    <div class="sel-list" id="src-list"></div>
+    <br><div class="m-btns"><button class="btn btn-sky btn-sm" onclick="closeOv('ov-src')">Cancelar</button></div>
+</div></div>
+
+<div class="overlay" id="ov-tgt"><div class="modal modal-dark">
+    <div class="m-title dark">⚔ ELEGIR OBJETIVO</div>
+    <div class="m-text dark">Desde: <b id="atk-from">—</b></div>
+    <div class="sel-list" id="tgt-list"></div>
+    <br><div class="m-btns"><button class="btn btn-sky btn-sm" onclick="closeOv('ov-tgt')">Cancelar</button></div>
+</div></div>
+
+<div class="overlay" id="ov-stb"><div class="modal modal-dark">
+    <div class="m-title dark">🛡 ESTABILIZAR</div>
+    <div class="m-text dark" id="stb-info">—</div>
+    <div class="sel-list" id="stb-list"></div>
+    <br><div class="m-btns"><button class="btn btn-sky btn-sm" onclick="closeOv('ov-stb')">Cancelar</button></div>
+</div></div>
+
+<div class="overlay" id="ov-combat"><div class="modal modal-dark">
+    <div class="m-title dark">⚔ RESULTADO DEL COMBATE</div>
+    <div class="m-text dark" id="cb-header">—</div>
+    <div class="newton-box" id="newton-steps"></div>
+    <div class="res-badge" id="res-badge">—</div>
+    <div class="res-det" id="res-det">—</div>
+    <br><div class="m-btns"><button class="btn btn-gold btn-sm" onclick="closeCombat()">Continuar ➤</button></div>
+</div></div>
+
+<div class="overlay" id="ov-rf"><div class="modal modal-dark">
+    <div class="m-title dark">🏹 REFUERZOS LLEGAN</div>
+    <div class="m-text dark" id="rf-info">—</div>
+    <div class="sel-list" id="rf-list"></div>
+</div></div>
+
+<script>
+    /* ══ DATA ══ */
+    const TERRS=[{id:0,name:'Valdris'},{id:1,name:'Eryndel'},{id:2,name:'Korrath'},{id:3,name:'Myravel'},{id:4,name:'Ashfen'},{id:5,name:'Solmere'}];
+
+    /* MAP: 3x2 simple layout (centros en %) */
+    const TPOS=[
+        {x:20, y:28},
+        {x:50, y:28},
+        {x:80, y:28},
+        {x:20, y:70},
+        {x:50, y:70},
+        {x:80, y:70},
+    ];
+
+    const DET=[0,5,7,10,12,15,15], STBT=[0,4,7,10,12,16,16];
+    const DE=['','⚀','⚁','⚂','⚃','⚄','⚅'];
+    const OC=[
+        {fill:'rgba(30,100,180,0.82)',stroke:'#8ADAFF',flag:'🔵'},
+        {fill:'rgba(180,40,100,0.82)',stroke:'#FFA0C8',flag:'🔴'},
+    ];
+    const TM=["Las huestes de {n} marchan al frente. ¡Que los cielos os favorezcan!","Es la hora de la gloria, {n}. ¡El destino del reino está en vuestras manos!","¡Los tambores de guerra resuenan para {n}! ¡Que ningún enemigo se interponga!","El oráculo ha hablado: es el turno de {n}. ¡Avanzad sin temor!","¡Las estrellas guían a {n} hacia la victoria! ¡Adelante, noble guerrero!"];
+    const FM=["Los dioses no favorecen el ataque hoy, {n}... La retirada es sabia.","¡El enemigo resiste! Las fuerzas de {n} retroceden con pérdidas.","Una derrota amarga, {n}. Los grandes guerreros aprenden del fracaso."];
+    const EM=["¡Las tropas de {n} avanzan con fiereza! El enemigo sangra.","¡Un golpe certero de {n}! El territorio enemigo tiembla.","¡{n} demuestra su valía en el campo de batalla!"];
+    const DVM=["¡VICTORIA APLASTANTE! Las fuerzas de {n} arrasan sin piedad. ¡Los dioses rugen!","¡Devastación total! {n} ha sembrado el terror en las filas enemigas.","¡El poder de {n} es incontestable! El enemigo huye despavorido."];
+    const CM=["¡{n} conquista {t}! La bandera de la gloria ondea en el horizonte.","¡{t} cae ante {n}! Otro territorio se rinde a su poderío.","¡La Gran Conquista avanza! {n} toma control de {t}."];
+    const HDM=["¡Un {d}! ¡Los astros bendicen a {n} esta jornada!","¡Glorioso {d}! ¡El dado sagrado sonríe a {n}!"];
+    const LDM=["Un {d}... Los vientos no son favorables hoy para {n}.","¡{d}! El destino pone a prueba la paciencia de {n}."];
+
+    function pm(a,v={}){let m=a[Math.floor(Math.random()*a.length)];for(const[k,val]of Object.entries(v))m=m.replaceAll(`{${k}}`,val);return m}
+
+    /* ══ STATE ══ */
+    let G={};
+    function initState(p1,p2){G={players:[{name:p1||'Guerrero'},{name:p2||'Conquistadora'}],territories:TERRS.map((t,i)=>({...t,owner:i<3?0:1,troops:15,stab:50})),cp:0,total:0,ap:0,rolled:false,dv:0,pc:[]}}
+
+    /* ══ NEWTON ══ */
+    function newton(A){
+        const s=[];if(A<=0)return{x:0,s,ok:false};
+        let x=A/2;
+        for(let i=0;i<50;i++){
+            const fx=Math.log(1+x)+x-A,fp=1/(1+x)+1,xn=x-fx/fp;
+            s.push(`x${i} = ${x.toFixed(5)}   f(x) = ${fx.toFixed(5)}`);
+            if(Math.abs(xn-x)<0.0001){s.push(`x${i+1} = ${xn.toFixed(5)}  ✓ Convergió`);return{x:xn,s,ok:true}}
+            x=xn;
+        }
+        return{x,s,ok:true};
+    }
+    function cls(x){return x<1.2?'fallido':x<2.8?'efectivo':'devastador'}
+
+    /* ══ UI ══ */
+    function showScreen(id){
+        document.querySelectorAll('.screen').forEach(s=>s.classList.remove('active'));
+        document.getElementById(id).classList.add('active');
+    }
+    function openOv(id){document.getElementById(id).classList.add('active')}
+    function closeOv(id){document.getElementById(id).classList.remove('active')}
+    function addLog(m,c=''){const l=document.getElementById('glog'),e=document.createElement('div');e.className='log-e '+c;e.textContent=m;l.prepend(e)}
+
+    /* FIX 4: toggle panel */
+    let panelOpen = false;
+    function togglePanel(){
+        panelOpen = !panelOpen;
+        const panel = document.getElementById('gside');
+        const btn = document.querySelector('.panel-toggle');
+        if(panelOpen){
+            panel.classList.add('open');
+            btn.textContent = '✕ Panel ▼';
+        } else {
+            panel.classList.remove('open');
+            btn.textContent = '⚔ Panel ▲';
+        }
+    }
+
+    /* ══ BOOK ══ */
+    function openBook(){showScreen('s-libro-abierto');showIndex()}
+    function showIndex(){document.getElementById('book-index').style.display='block';document.getElementById('book-content').style.display='none'}
+    const GD={
+        turno:{title:'El Turno de Batalla',text:`Cada turno tiene <b>4 fases</b>:<br><br>① <b>Refuerzos</b> — recibes tropas nuevas<br>② <b>Deterioro</b> — un territorio tuyo pierde estabilidad al azar<br>③ <b>Dado Sagrado</b> — tiras 1d6 para obtener puntos de acción<br>④ <b>Acciones</b> — gastas los puntos en atacar o estabilizar<br><br>Luego el turno pasa al rival.`},
+        refuerzos:{title:'Los Refuerzos',text:`Al inicio de tu turno recibes tropas:<br><br><b>Tropas = 2 × territorios que controlas</b><br><br>1 territorio → 2 tropas<br>2 territorios → 4 tropas<br>3 territorios → 6 tropas<br><br>Se asignan a <b>un único territorio</b> tuyo.`},
+        deterioro:{title:'El Deterioro',text:`Un territorio tuyo elegido al <b>azar</b> pierde estabilidad cada turno.<br><br>1 territorio → −5<br>2 territorios → −7<br>3 territorios → −10<br>4 territorios → −12<br>5 o 6 territorios → −15<br><br>¡Más poder, más desgaste interno!`},
+        dado:{title:'El Dado Sagrado',text:`Tiras <b>1d6</b>. El resultado son tus <b>puntos de acción</b>.<br><br><b>Atacar</b> cuesta 2 puntos<br><b>Estabilizar</b> cuesta 1 punto<br><br>Con dado 1 → solo estabilizas<br>Con dado 6 → puedes atacar 3 veces<br><br>¡El dado también amplifica la fuerza de tus ataques!`},
+        ataque:{title:'El Sistema de Ataque',text:`Para atacar necesitas 2 puntos.<br><br>Se calcula la <b>ventaja A</b>:<br>F_atac = (tropas × dado)/10 + estab/100<br>F_def = tropas/10 + estab/100<br>A = F_atac − F_def<br><br>Si A ≤ 0 → fallas (−1 tropa −8 estab)<br>Si A > 0 → se calcula <b>x</b> con Newton<br><br>x &lt; 1.2 → Fallido<br>1.2 ≤ x &lt; 2.8 → Efectivo<br>x ≥ 2.8 → Devastador`},
+        newton:{title:'La Magia de Newton',text:`El poder que inviertes en tu ataque (A) no siempre es el daño que recibes. Se utiliza el Método de Newton para calcular la Intensidad Real (x) de tu ofensiva.<br><br>Dependiendo de esta intensidad, tu ataque caerá en una de estas tres categorías:<br><br><b>Ataque Fallido (x &lt; 1.2)</b><br>Tu estrategia no fue efectiva. Pierdes 1 tropa y 8 de estabilidad.<br><br><b>Ataque Efectivo (1.2 ≤ x &lt; 2.8)</b><br>Un golpe sólido que debilita al enemigo.<br>Daño tropas: x × 2 — Daño estabilidad: x × 10<br><br><b>Ataque Devastador (x ≥ 2.8)</b><br>¡Una maniobra maestra! El enemigo sufre grandes pérdidas.<br>Daño tropas: x × 3 — Daño estabilidad: x × 15 — Bono: +1 tropa<br><br>Este tipo de ecuaciones no se puede resolver algebraicamente, por eso usamos Métodos Numéricos.`},
+        conquista:{title:'La Conquista',text:`Un territorio cae cuando:<br><br><b>Tropas ≤ 0</b><br>ó<br><b>Estabilidad ≤ 0</b><br><br>Al ser conquistado pasa a ser tuyo con:<br>• 3 tropas • 20 de estabilidad<br><br>¡Débil pero crece con refuerzos!`},
+        victoria:{title:'Cómo Ganar',text:`⚔ <b>Victoria directa</b> — controla los 6 territorios<br><br>💀 <b>Eliminación</b> — el rival pierde todos sus territorios<br><br>⏳ <b>Límite</b> — tras 30 turnos gana quien tenga más territorios. Empate → mayor suma de tropas + estabilidad.<br><br><b>¡La Gloria eterna aguarda al vencedor!</b>`},
+    };
+    function showGuide(k){const g=GD[k];document.getElementById('book-content-inner').innerHTML=`<div class="ct-heading">${g.title}</div><div class="ct-p">${g.text}</div>`;document.getElementById('book-index').style.display='none';document.getElementById('book-content').style.display='block'}
+
+    /* ══ GAME START ══ */
+    function startGame(){
+        const p1=document.getElementById('p1-name').value.trim()||'Guerrero';
+        const p2=document.getElementById('p2-name').value.trim()||'Conquistadora';
+        initState(p1,p2);
+        panelOpen=false;
+        document.getElementById('gside').classList.remove('open');
+        document.querySelector('.panel-toggle').textContent='⚔ Panel ▲';
+        showScreen('s-game');
+        renderMap();
+        beginTurn();
+    }
+
+    /* ══ MAP — simple pixel tiles ══ */
+    function renderMap(){renderShapes();renderBtns()}
+
+    function renderShapes(){
+        const svg=document.getElementById('terr-shapes');
+        svg.innerHTML='';
+        const tileW=24;
+        const tileH=18;
+        const notch=2;
+
+        G.territories.forEach((t,i)=>{
+            const pos=TPOS[i];
+            const c=OC[t.owner];
+            const x=pos.x - tileW/2;
+            const y=pos.y - tileH/2;
+
+            const shadow=document.createElementNS('http://www.w3.org/2000/svg','rect');
+            shadow.setAttribute('x',x+1.5);
+            shadow.setAttribute('y',y+1.5);
+            shadow.setAttribute('width',tileW);
+            shadow.setAttribute('height',tileH);
+            shadow.setAttribute('fill','rgba(0,0,0,0.25)');
+            svg.appendChild(shadow);
+
+            const rect=document.createElementNS('http://www.w3.org/2000/svg','rect');
+            rect.setAttribute('x',x);
+            rect.setAttribute('y',y);
+            rect.setAttribute('width',tileW);
+            rect.setAttribute('height',tileH);
+            rect.setAttribute('fill',c.fill);
+            rect.setAttribute('stroke',c.stroke);
+            rect.setAttribute('stroke-width','1.2');
+            svg.appendChild(rect);
+
+            const inner=document.createElementNS('http://www.w3.org/2000/svg','rect');
+            inner.setAttribute('x',x+1.5);
+            inner.setAttribute('y',y+1.5);
+            inner.setAttribute('width',tileW-3);
+            inner.setAttribute('height',tileH-3);
+            inner.setAttribute('fill','none');
+            inner.setAttribute('stroke',c.stroke);
+            inner.setAttribute('stroke-width','0.6');
+            inner.setAttribute('opacity','0.6');
+            svg.appendChild(inner);
+
+            const banner=document.createElementNS('http://www.w3.org/2000/svg','rect');
+            banner.setAttribute('x',x+notch);
+            banner.setAttribute('y',y+tileH-5);
+            banner.setAttribute('width',tileW-2*notch);
+            banner.setAttribute('height','3.2');
+            banner.setAttribute('fill','rgba(0,0,0,0.18)');
+            svg.appendChild(banner);
+
+            const tower=document.createElementNS('http://www.w3.org/2000/svg','rect');
+            tower.setAttribute('x',x+tileW/2-2);
+            tower.setAttribute('y',y+3);
+            tower.setAttribute('width','4');
+            tower.setAttribute('height','6');
+            tower.setAttribute('fill',c.stroke);
+            tower.setAttribute('opacity','0.6');
+            svg.appendChild(tower);
+        });
+    }
+
+    function renderBtns(){
+        const cont=document.getElementById('terr-overlay');
+        cont.innerHTML='';
+        G.territories.forEach((t,i)=>{
+            const pos=TPOS[i];
+            const c=OC[t.owner];
+            const btn=document.createElement('button');
+            btn.className='terr-btn';
+            btn.style.left=pos.x+'%';
+            btn.style.top=pos.y+'%';
+            btn.style.transform='translate(-50%,-50%)';
+            btn.innerHTML=`<div class="t-lbl" style="border-color:${c.stroke}">${c.flag} ${t.name}</div><div class="t-stats"><span class="t-st">⚔${t.troops}</span><span class="t-st s">🛡${t.stab}</span></div>`;
+            btn.onclick=()=>openTerrInfo(i);
+            cont.appendChild(btn);
+        });
+    }
+
+    window.addEventListener('resize', ()=>{ if(G.territories) renderBtns(); });
+
+    /* ══ TURN ══ */
+    function beginTurn(){
+        const cp=G.cp,pl=G.players[cp];G.rolled=false;G.ap=0;
+        const myT=G.territories.filter(t=>t.owner===cp);
+        const bonus=myT.length*2;
+        if(myT.length>0){
+            const ri=Math.floor(Math.random()*myT.length),dt=myT[ri],loss=DET[myT.length]||5;
+            dt.stab=Math.max(0,dt.stab-loss);
+            addLog(`📉 Deterioro: ${dt.name} −${loss} estab (→${dt.stab})`,'ls');
+        }
+        checkConq();
+        document.getElementById('s-pname').textContent=pl.name;
+        document.getElementById('s-tnum').textContent=`Ronda ${Math.floor(G.total/2)+1} · T${G.total+1}/30`;
+        document.getElementById('mpc-name').textContent=pl.name;
+        document.getElementById('mpc-round').textContent=`T${G.total+1}/30`;
+        updateDice();updateBtns();
+        document.getElementById('tm-icon').textContent=cp===0?'🔵':'🔴';
+        document.getElementById('tm-name').textContent=pl.name;
+        document.getElementById('tm-msg').textContent=pm(TM,{n:pl.name});
+        const b=document.getElementById('tm-btn');
+        b.onclick=()=>{closeOv('ov-turn');showRf(cp,bonus)};
+        openOv('ov-turn');renderMap();
+    }
+
+    function showRf(cp,bonus){
+        const myT=G.territories.filter(t=>t.owner===cp);
+        document.getElementById('rf-info').innerHTML=`¡Llegan <b>${bonus} tropas</b>! ¿Dónde las envías?`;
+        const l=document.getElementById('rf-list');l.innerHTML='';
+        myT.forEach(t=>{
+            const b=document.createElement('button');b.className='sel-item';
+            b.textContent=`${t.name} — ⚔${t.troops} 🛡${t.stab}`;
+            b.onclick=()=>{t.troops+=bonus;addLog(`🏹 +${bonus} tropas a ${t.name} (→${t.troops})`,'ls');closeOv('ov-rf');renderMap()};
+            l.appendChild(b);
+        });
+        openOv('ov-rf');
+    }
+
+    function rollDice(){
+        if(G.rolled)return;
+        const el=document.getElementById('dice-el');el.classList.add('rolling');
+        setTimeout(()=>{
+            el.classList.remove('rolling');
+            G.dv=Math.floor(Math.random()*6)+1;G.ap=G.dv;G.rolled=true;
+            el.textContent=DE[G.dv];
+            const n=G.players[G.cp].name;
+            addLog(`🎲 ${n} saca ${G.dv}. ${pm(G.dv>=5?HDM:LDM,{n,d:G.dv})}`,'ls');
+            updateDice();updateBtns();
+        },520);
+    }
+
+    function updateDice(){
+        if(!G.rolled)document.getElementById('dice-el').textContent='?';
+        document.getElementById('ap-lbl').textContent=G.rolled?`${G.ap} puntos`:'Toca para tirar';
+        const r=document.getElementById('ap-row');r.innerHTML='';
+        for(let i=0;i<6;i++){const p=document.createElement('div');p.className='ap-pip'+(i>=G.ap?' used':'');r.appendChild(p)}
+    }
+    function updateBtns(){
+        document.getElementById('btn-atk').disabled=!G.rolled||G.ap<2;
+        document.getElementById('btn-stb').disabled=!G.rolled||G.ap<1;
+    }
+    function spendAP(n){G.ap-=n;updateDice();updateBtns()}
+
+    /* ══ TERRITORY INFO ══ */
+    function openTerrInfo(i){
+        const t=G.territories[i],c=OC[t.owner];
+        document.getElementById('ot-title').textContent=t.name;
+        document.getElementById('ot-owner').innerHTML=`Señor: <span style="color:${c.stroke}">${G.players[t.owner].name}</span>`;
+        document.getElementById('ot-troops').textContent=t.troops;
+        document.getElementById('ot-stab').textContent=t.stab;
+        openOv('ov-terr');
+    }
+
+    /* ══ ATTACK ══ */
+    function openAttack(){
+        const cp=G.cp,myT=G.territories.filter(t=>t.owner===cp);
+        const l=document.getElementById('src-list');l.innerHTML='';
+        myT.forEach(t=>{
+            const b=document.createElement('button');b.className='sel-item';
+            b.textContent=`${t.name} — ⚔${t.troops} 🛡${t.stab}`;
+            b.onclick=()=>{closeOv('ov-src');pickTarget(t.id)};
+            l.appendChild(b);
+        });
+        openOv('ov-src');
+    }
+
+    function pickTarget(sid){
+        const src=G.territories[sid];
+        document.getElementById('atk-from').textContent=src.name;
+        const enemies=G.territories.filter(t=>t.owner!==G.cp);
+        const l=document.getElementById('tgt-list');l.innerHTML='';
+        enemies.forEach(t=>{
+            const b=document.createElement('button');b.className='sel-item';
+            b.textContent=`${t.name} — ⚔${t.troops} 🛡${t.stab}`;
+            b.onclick=()=>{closeOv('ov-tgt');execCombat(sid,t.id)};
+            l.appendChild(b);
+        });
+        openOv('ov-tgt');
+    }
+
+    function execCombat(si,ti){
+        const src=G.territories[si],tgt=G.territories[ti],pl=G.players[G.cp];
+        const Fa=(src.troops*G.dv)/10+src.stab/100,Fd=tgt.troops/10+tgt.stab/100,A=Fa-Fd;
+        let steps=[
+            `F_atac = (${src.troops}×${G.dv})/10 + ${src.stab}/100 = ${Fa.toFixed(3)}`,
+            `F_def  = ${tgt.troops}/10 + ${tgt.stab}/100 = ${Fd.toFixed(3)}`,
+            `A = ${A.toFixed(4)}`,
+            '─────────────────────────────'
+        ];
+        let rt,rm,det,xv=0;
+        if(A<=0){
+            rt='fallido';steps.push('A ≤ 0 → Ataque cancelado');
+            src.troops=Math.max(0,src.troops-1);src.stab=Math.max(0,src.stab-8);
+            rm='💨 ATAQUE FALLIDO';det=`${src.name} pierde 1 tropa y 8 estabilidad.`;
+            addLog(`⚔ ${pl.name} ataca ${tgt.name} → FALLIDO`,'lc');addLog(pm(FM,{n:pl.name}));
+        }else{
+            const nr=newton(A);xv=nr.x;
+            steps.push(...nr.s,'─────────────────────────────',`x = ${xv.toFixed(5)}`);
+            const c=cls(xv);
+            if(c==='fallido'){
+                rt='fallido';rm='💨 ATAQUE FALLIDO';
+                src.troops=Math.max(0,src.troops-1);src.stab=Math.max(0,src.stab-8);
+                det=`${src.name} pierde 1 tropa y 8 estabilidad.`;
+                addLog(`⚔ ${pl.name} → FALLIDO (x=${xv.toFixed(2)})`,'lc');addLog(pm(FM,{n:pl.name}));
+            }else if(c==='efectivo'){
+                rt='efectivo';rm='⚔ ATAQUE EFECTIVO';
+                const td=Math.floor(xv*2),sd=Math.floor(xv*10);
+                tgt.troops=Math.max(0,tgt.troops-td);tgt.stab=Math.max(0,tgt.stab-sd);
+                det=`${tgt.name} pierde ${td} tropas y ${sd} estabilidad.\nfloor(${xv.toFixed(2)}×2)=${td}, floor(${xv.toFixed(2)}×10)=${sd}`;
+                addLog(`⚔ ${pl.name} → EFECTIVO en ${tgt.name} (x=${xv.toFixed(2)}, −${td}t −${sd}e)`,'lc');addLog(pm(EM,{n:pl.name}));
+            }else{
+                rt='devastador';rm='💥 ¡ATAQUE DEVASTADOR!';
+                const td=Math.floor(xv*3),sd=Math.floor(xv*15);
+                tgt.troops=Math.max(0,tgt.troops-td);tgt.stab=Math.max(0,tgt.stab-sd);src.troops+=1;
+                det=`${tgt.name} pierde ${td} tropas y ${sd} estabilidad.\n${src.name} gana 1 tropa.\nfloor(${xv.toFixed(2)}×3)=${td}, floor(${xv.toFixed(2)}×15)=${sd}`;
+                addLog(`⚔ ${pl.name} → DEVASTADOR en ${tgt.name} (x=${xv.toFixed(2)})`,'lc');addLog(pm(DVM,{n:pl.name}));
+            }
+        }
+        document.getElementById('cb-header').innerHTML=`<span style="color:#8ADAFF">${src.name}</span> ⚔ <span style="color:#FFA0C8">${tgt.name}</span>`;
+        document.getElementById('newton-steps').textContent=steps.join('\n');
+        const badge=document.getElementById('res-badge');badge.className='res-badge '+rt;badge.textContent=rm;
+        document.getElementById('res-det').textContent=det;
+        spendAP(2);G.pc=[];checkConq();openOv('ov-combat');renderMap();
+    }
+
+    function closeCombat(){
+        closeOv('ov-combat');
+        if(G.pc.length>0){
+            G.pc.forEach(ti=>{
+                const t=G.territories[ti];t.owner=G.cp;t.troops=3;t.stab=20;
+                addLog(pm(CM,{n:G.players[G.cp].name,t:t.name}),'lq');
+            });
+            G.pc=[];renderMap();checkVic();
+        }
+    }
+
+    function checkConq(){G.territories.forEach((t,i)=>{if((t.troops<=0||t.stab<=0)&&!G.pc.includes(i))G.pc.push(i)})}
+
+    function checkVic(){
+        const ow=[...new Set(G.territories.map(t=>t.owner))];
+        if(ow.length===1){trigVic(ow[0]);return true}
+        for(let p=0;p<2;p++){if(G.territories.filter(t=>t.owner===p).length===0){trigVic(1-p);return true}}
+        return false;
+    }
+
+    function trigVic(pi){
+        document.getElementById('vic-pname').textContent=G.players[pi].name;
+        spawnStars();setTimeout(()=>showScreen('s-victoria'),300);
+    }
+
+    function spawnStars(){
+        const c=document.getElementById('vic-stars');c.innerHTML='';
+        for(let i=0;i<40;i++){
+            const s=document.createElement('div'),sz=Math.random()*14+7;
+            s.style.cssText=`position:absolute;left:${Math.random()*100}%;top:${Math.random()*100}%;font-size:${sz}px;color:var(--${['gold','pink','rose'][Math.floor(Math.random()*3)]});animation:fIn ${Math.random()*2+.5}s ${Math.random()*2}s both;opacity:0`;
+            s.textContent=['★','✦','✧','♦','✿'][Math.floor(Math.random()*5)];c.appendChild(s);
+        }
+    }
+
+    /* ══ STABILIZE ══ */
+    function openStabilize(){
+        const cp=G.cp,myT=G.territories.filter(t=>t.owner===cp),gain=STBT[myT.length]||4;
+        document.getElementById('stb-info').innerHTML=`Recupera <b>+${gain} estabilidad</b> (máx. 100)`;
+        const l=document.getElementById('stb-list');l.innerHTML='';
+        myT.forEach(t=>{
+            const b=document.createElement('button');b.className='sel-item';
+            b.textContent=`${t.name} — 🛡 ${t.stab}/100`;
+            b.onclick=()=>{t.stab=Math.min(100,t.stab+gain);addLog(`🛡 ${G.players[cp].name} estabiliza ${t.name} (+${gain}, →${t.stab})`);spendAP(1);closeOv('ov-stb');renderMap()};
+            l.appendChild(b);
+        });
+        openOv('ov-stb');
+    }
+
+    /* ══ END TURN ══ */
+    function endTurn(){
+        G.total++;
+        if(G.total>=30){
+            const sc=[0,1].map(p=>{const t=G.territories.filter(t=>t.owner===p);return{p,terrs:t.length,tot:t.reduce((a,t)=>a+t.troops+t.stab,0)}});
+            let w;
+            if(sc[0].terrs!==sc[1].terrs)w=sc[0].terrs>sc[1].terrs?0:1;
+            else w=sc[0].tot>=sc[1].tot?0:1;
+            trigVic(w);return;
+        }
+        G.cp=1-G.cp;beginTurn();
+    }
+</script>
+</body>
+</html>
+
