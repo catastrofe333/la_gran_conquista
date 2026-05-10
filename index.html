@@ -22,7 +22,7 @@
         .screen.active{display:flex}
 
         /* ══ BUTTONS ══ */
-        .btn{font-family:var(--px);font-size:clamp(10px,3.6vw,15px);border:none;cursor:pointer;padding:clamp(12px,3.2vw,18px) clamp(24px,5.5vw,40px);position:relative;letter-spacing:1px;transition:transform .06s;min-width:clamp(200px,60vw,260px);text-align:center}
+        .btn{font-family:var(--px);font-size:clamp(9px,3vw,13px);border:none;cursor:pointer;padding:clamp(12px,3vw,16px) clamp(22px,5vw,38px);position:relative;letter-spacing:1px;transition:transform .06s;min-width:clamp(190px,55vw,250px);text-align:center}
         .btn:active{transform:translateY(3px)}
         .btn-pink{background:var(--pink);color:var(--black);box-shadow:inset -3px -3px 0 var(--pink-dark),inset 3px 3px 0 var(--pink-light),0 5px 0 var(--rose-dark),0 7px 0 rgba(0,0,0,0.5)}
         .btn-pink:hover{background:var(--pink-light)}
@@ -30,7 +30,7 @@
         .btn-sky:hover{background:var(--sky-light);color:var(--black)}
         .btn-gold{background:var(--gold);color:var(--black);box-shadow:inset -3px -3px 0 var(--gold-dark),inset 3px 3px 0 #FFF0A0,0 5px 0 #906010,0 7px 0 rgba(0,0,0,0.5)}
         .btn-gold:hover{background:#FFF0A0}
-        .btn-sm{font-size:clamp(8px,2.6vw,11px);padding:clamp(10px,2.4vw,13px) clamp(16px,3.8vw,22px);min-width:0}
+        .btn-sm{font-size:clamp(7px,2.2vw,10px);padding:clamp(9px,2.2vw,12px) clamp(14px,3.5vw,20px);min-width:0}
         .btn:disabled{opacity:.4;cursor:not-allowed;transform:none}
 
         /* ══ S1: INICIO ══ */
@@ -137,29 +137,133 @@
         /* ══ S5: JUEGO ══ */
         #s-game{flex-direction:column;align-items:stretch;padding:0;position:fixed;inset:0}
 
-        /* MAP — simple, 6 territorios */
-        .gmap{flex:1;position:relative;overflow:hidden;background:#2A6A2A;min-height:0}
+        /* FIX 5: back arrow top-left */
+        .back-arrow{
+            position:absolute;top:12px;left:12px;z-index:10;
+            width:clamp(36px,8vw,48px);height:clamp(36px,8vw,48px);
+            background:rgba(13,8,22,0.82);
+            border:2px solid var(--pink);
+            box-shadow:0 3px 0 var(--rose-dark),0 5px 0 rgba(0,0,0,0.4);
+            display:flex;align-items:center;justify-content:center;
+            cursor:pointer;font-size:clamp(14px,4vw,20px);
+            color:var(--pink-light);
+            transition:transform .06s;
+        }
+        .back-arrow:active{transform:translateY(3px);box-shadow:0 1px 0 var(--rose-dark)}
+
+        /* MAP — FIX 3: simpler, no grid, no roads */
+        .gmap{flex:1;position:relative;overflow:hidden;background:#2A6A3A;min-height:0}
+
+        /* FIX 4: panel toggle button */
+        .panel-toggle{
+            position:absolute;
+            bottom:12px;right:12px;z-index:10;
+            font-family:var(--px);
+            font-size:clamp(8px,2.5vw,11px);
+            background:rgba(13,8,22,0.88);
+            border:2px solid var(--pink);
+            color:var(--pink-light);
+            padding:clamp(8px,2vw,11px) clamp(12px,3vw,16px);
+            cursor:pointer;
+            box-shadow:0 3px 0 var(--rose-dark),0 5px 0 rgba(0,0,0,0.4);
+            transition:transform .06s;
+            white-space:nowrap;
+        }
+        .panel-toggle:active{transform:translateY(3px);box-shadow:0 1px 0 var(--rose-dark)}
+
+        /* Current player chip on map */
+        .map-player-chip{
+            position:absolute;top:12px;left:56px;z-index:8;
+            background:rgba(13,8,22,0.88);
+            border:2px solid var(--gold);
+            padding:clamp(5px,1.5vw,8px) clamp(8px,2vw,12px);
+            display:flex;flex-direction:column;align-items:flex-start;gap:2px;
+        }
+        .mpc-label{font-size:clamp(5px,1.4vw,7px);color:var(--pink);letter-spacing:1px}
+        .mpc-name{font-size:clamp(8px,2.5vw,12px);color:var(--gold)}
+        .mpc-round{font-size:clamp(5px,1.3vw,6.5px);color:rgba(255,255,255,0.5)}
+
+        /* FIX 4: side panel slides in/out */
+        .gside{
+            background:var(--black);
+            border-top:3px solid var(--pink-dark);
+            display:flex;flex-direction:column;
+            overflow:hidden;
+            flex-shrink:0;
+            /* mobile: overlay at bottom, hidden by default */
+            position:fixed;
+            left:0;right:0;bottom:0;
+            height:clamp(240px,44vh,320px);
+            transform:translateY(100%);
+            transition:transform .3s ease;
+            z-index:15;
+        }
+        .gside.open{transform:translateY(0)}
+        @media(min-width:580px){
+            .gside{
+                position:static;
+                transform:none !important;
+                width:clamp(220px,27vw,270px);
+                height:auto;
+                border-top:none;
+                border-left:3px solid var(--pink-dark);
+            }
+        }
+
+        .side-hdr{
+            background:linear-gradient(135deg,var(--rose-dark),var(--rose));
+            padding:clamp(7px,1.8vw,12px);
+            text-align:center;
+            border-bottom:2px solid var(--pink);
+            flex-shrink:0;
+            display:flex;align-items:center;justify-content:space-between;
+            gap:8px;
+        }
+        .side-hdr-text{flex:1;text-align:center}
+        .side-close-btn{
+            font-family:var(--px);font-size:clamp(7px,2vw,10px);
+            background:rgba(0,0,0,0.3);border:2px solid rgba(255,255,255,0.3);
+            color:var(--white);padding:4px 8px;cursor:pointer;flex-shrink:0;
+        }
+        @media(min-width:580px){.side-close-btn{display:none}}
 
         /* FIX 2: larger sidebar text */
-        .s-tlbl{font-size:clamp(7px,2vw,9px);color:var(--pink-light);letter-spacing:2px;margin-bottom:3px}
-        .s-pname{font-size:clamp(12px,3.4vw,16px);color:var(--gold);text-shadow:2px 2px rgba(0,0,0,0.6);word-break:break-all}
-        .s-tnum{font-size:clamp(6px,1.8vw,8px);color:rgba(255,255,255,0.5);margin-top:2px}
+        .s-tlbl{font-size:clamp(6px,1.6vw,8px);color:var(--pink-light);letter-spacing:2px;margin-bottom:3px}
+        .s-pname{font-size:clamp(10px,2.8vw,14px);color:var(--gold);text-shadow:2px 2px rgba(0,0,0,0.6);word-break:break-all}
+        .s-tnum{font-size:clamp(5px,1.4vw,7px);color:rgba(255,255,255,0.5);margin-top:2px}
 
-        /* FIX 2: larger section titles */
-        .s-sec-t{font-size:clamp(7px,2vw,10px);color:var(--pink);letter-spacing:1px;margin-bottom:7px}
+        .side-main{flex:1;overflow-y:auto;display:flex;flex-direction:column;min-height:0}
+        .side-ctrl{display:flex;flex-direction:row;flex-shrink:0}
+        @media(min-width:580px){.side-ctrl{flex-direction:column}}
 
         .dice-sec{flex:0 0 auto;padding:clamp(7px,1.8vw,11px) clamp(9px,2.2vw,13px);border-right:2px solid rgba(244,167,195,0.15)}
         @media(min-width:580px){.dice-sec{border-right:none;border-bottom:2px solid rgba(244,167,195,0.15)}}
 
-        .ap-sec{flex:1;padding:clamp(7px,1.8vw,11px) clamp(9px,2.2vw,13px)}
+        /* FIX 2: larger section titles */
+        .s-sec-t{font-size:clamp(6px,1.6vw,8px);color:var(--pink);letter-spacing:1px;margin-bottom:7px}
+
+        .dice-wrap{display:flex;flex-direction:column;align-items:center;gap:6px}
+        .dice{
+            width:clamp(48px,9vw,64px);height:clamp(48px,9vw,64px);
+            background:var(--white);border:3px solid var(--pink-dark);
+            box-shadow:inset -3px -3px 0 #E8D0E0,inset 3px 3px 0 #FFF8FF,0 4px 0 rgba(0,0,0,0.5);
+            display:flex;align-items:center;justify-content:center;
+            font-size:clamp(22px,5.5vw,32px);cursor:pointer;transition:transform .05s;
+            clip-path:polygon(6px 0%,calc(100% - 6px) 0%,100% 6px,100% calc(100% - 6px),calc(100% - 6px) 100%,6px 100%,0% calc(100% - 6px),0% 6px)
+        }
+        .dice:active{transform:scale(.9)}
+        .dice.rolling{animation:dRoll .5s ease}
+        @keyframes dRoll{0%{transform:rotate(0) scale(1.1)}25%{transform:rotate(-15deg) scale(.95)}50%{transform:rotate(15deg) scale(1.05)}75%{transform:rotate(-8deg) scale(.97)}100%{transform:rotate(0) scale(1)}}
         .ap-row{display:flex;gap:3px;justify-content:center;flex-wrap:wrap}
         .ap-pip{width:clamp(10px,2vw,14px);height:clamp(10px,2vw,14px);background:var(--pink);box-shadow:inset -2px -2px 0 var(--pink-dark),inset 2px 2px 0 var(--pink-light);clip-path:polygon(2px 0%,calc(100% - 2px) 0%,100% 2px,100% calc(100% - 2px),calc(100% - 2px) 100%,2px 100%,0% calc(100% - 2px),0% 2px)}
         .ap-pip.used{background:#333;box-shadow:inset -2px -2px 0 #111,inset 2px 2px 0 #555}
         /* FIX 2: larger ap label */
-        .ap-lbl{font-size:clamp(7px,1.9vw,9px);color:rgba(255,255,255,0.5);text-align:center}
+        .ap-lbl{font-size:clamp(6px,1.5vw,8px);color:rgba(255,255,255,0.5);text-align:center}
 
+        .act-sec{flex:1;padding:clamp(7px,1.8vw,11px) clamp(9px,2.2vw,13px)}
+        .act-list{display:flex;flex-direction:column;gap:clamp(6px,1.5vw,9px)}
         /* FIX 2: larger action buttons */
-        .act-btn{font-family:var(--px);font-size:clamp(8px,2.4vw,12px);padding:clamp(10px,2.2vw,13px) 12px;border:none;cursor:pointer;color:var(--white);text-align:left;position:relative;transition:transform .05s}
+        .act-btn{font-family:var(--px);font-size:clamp(7px,2vw,10px);padding:clamp(9px,2vw,12px) 10px;border:none;cursor:pointer;color:var(--white);text-align:left;position:relative;transition:transform .05s}
         .act-btn:active:not(:disabled){transform:translateY(2px)}
         .act-btn:disabled{opacity:.35;cursor:not-allowed}
         .aa{background:var(--rose);box-shadow:inset -3px -3px 0 var(--rose-dark),inset 3px 3px 0 #FF7A9A,0 4px 0 rgba(0,0,0,0.5)}
@@ -168,11 +272,11 @@
         .as:not(:disabled):hover{background:var(--sky-light);color:var(--black)}
         .ae{background:#4A4060;box-shadow:inset -3px -3px 0 #2A2040,inset 3px 3px 0 #6A6080,0 4px 0 rgba(0,0,0,0.5);margin-top:2px}
         .ae:hover{background:#6A6080}
-        .act-cost{position:absolute;right:6px;top:50%;transform:translateY(-50%);font-size:clamp(7px,1.9vw,9px);color:var(--gold);background:rgba(0,0,0,0.4);padding:2px 5px}
+        .act-cost{position:absolute;right:6px;top:50%;transform:translateY(-50%);font-size:clamp(6px,1.5vw,8px);color:var(--gold);background:rgba(0,0,0,0.4);padding:2px 5px}
 
         .glog{flex:1;overflow-y:auto;padding:6px 9px;display:flex;flex-direction:column;gap:3px;min-height:0}
         /* FIX 2: larger log text */
-        .log-e{font-size:clamp(7px,1.9vw,9px);color:rgba(255,255,255,0.8);line-height:2;padding:4px 6px;border-left:2px solid var(--pink-dark);background:rgba(255,255,255,0.04)}
+        .log-e{font-size:clamp(6px,1.5vw,7.5px);color:rgba(255,255,255,0.8);line-height:2;padding:4px 6px;border-left:2px solid var(--pink-dark);background:rgba(255,255,255,0.04)}
         .log-e.lc{border-color:var(--rose);color:#FFB0B0}
         .log-e.lq{border-color:var(--gold);color:var(--gold)}
         .log-e.ls{border-color:#555;color:#999}
@@ -181,30 +285,39 @@
         .terr-btn{position:absolute;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:4px;cursor:pointer;font-family:var(--px);background:none;border:none;transition:transform .1s,filter .1s}
         .terr-btn:active{transform:scale(1.08);filter:brightness(1.2)}
         /* FIX 2: larger territory labels */
-        .t-lbl{font-size:clamp(7px,2.2vw,10px);background:rgba(26,16,32,0.9);color:var(--white);padding:5px 10px;border:2px solid var(--pink);box-shadow:2px 2px 0 rgba(0,0,0,0.5);pointer-events:none;white-space:nowrap}
-        .t-stats{display:flex;gap:6px;font-size:clamp(7px,2vw,9px);background:rgba(26,16,32,0.85);padding:4px 8px;border:1px solid rgba(244,167,195,0.4);pointer-events:none}
+        .t-lbl{font-size:clamp(6px,1.8vw,8px);background:rgba(26,16,32,0.9);color:var(--white);padding:4px 8px;border:2px solid var(--pink);box-shadow:2px 2px 0 rgba(0,0,0,0.5);pointer-events:none;white-space:nowrap}
+        .t-stats{display:flex;gap:6px;font-size:clamp(6px,1.6vw,7.5px);background:rgba(26,16,32,0.85);padding:3px 7px;border:1px solid rgba(244,167,195,0.4);pointer-events:none}
         .t-st{color:var(--gold)}.t-st.s{color:var(--pink-light)}
 
         /* ══ MODALS ══ */
-        .modal{background:#FFF8F8;border:4px solid var(--pink);box-shadow:0 0 0 2px var(--rose-dark),8px 8px 0 rgba(0,0,0,0.5);padding:clamp(18px,4vw,28px) clamp(14px,3.5vw,26px);width:min(480px,96vw);max-height:88vh;position:relative;overflow-y:auto;clip-path:polygon(10px 0%,calc(100% - 10px) 0%,100% 10px,100% calc(100% - 10px),calc(100% - 10px) 100%,10px 100%,0% calc(100% - 10px),0% 10px)}
+        .overlay{position:fixed;inset:0;z-index:200;background:rgba(0,0,0,0.9);display:none;align-items:center;justify-content:center;padding:12px}
+        .overlay.active{display:flex}
+        .modal{background:#FFF8F8;border:4px solid var(--pink);box-shadow:0 0 0 2px var(--rose-dark),8px 8px 0 rgba(0,0,0,0.5);padding:clamp(18px,4vw,28px) clamp(14px,3.5vw,26px);width:min(460px,96vw);max-height:88vh;position:relative;overflow-y:auto;clip-path:polygon(10px 0%,calc(100% - 10px) 0%,100% 10px,100% calc(100% - 10px),calc(100% - 10px) 100%,10px 100%,0% calc(100% - 10px),0% 10px)}
+        .modal-dark{background:#1A1020;border-color:var(--pink)}
         /* FIX 2: larger modal text */
-        .m-title{font-size:clamp(10px,3.4vw,14px);color:var(--rose-dark);text-align:center;margin-bottom:14px;line-height:1.8}
-        .m-text{font-size:clamp(9px,2.6vw,11px);color:#2A1A10;text-align:center;line-height:2.4;margin-bottom:14px}
+        .m-title{font-size:clamp(9px,3vw,13px);color:var(--rose-dark);text-align:center;margin-bottom:14px;line-height:1.8}
+        .m-title.dark{color:var(--gold)}
+        .m-text{font-size:clamp(8px,2.2vw,10px);color:#2A1A10;text-align:center;line-height:2.4;margin-bottom:14px}
         .m-text.dark{color:var(--pink-light)}
         .m-text b{color:var(--rose)}
         .m-btns{display:flex;gap:10px;justify-content:center;flex-wrap:wrap}
         .ti-row{display:flex;gap:14px;justify-content:center;margin:14px 0;flex-wrap:wrap}
         .ti-box{background:#F0E0F0;border:3px solid var(--pink-dark);padding:12px 18px;text-align:center}
-        .ti-lbl{font-size:clamp(7px,2vw,9px);color:var(--rose-dark);margin-bottom:6px}
-        .ti-val{font-size:clamp(22px,6vw,30px);color:var(--black)}
-        .sel-item{font-family:var(--px);font-size:clamp(8px,2.4vw,10px);padding:clamp(10px,2.4vw,14px) clamp(14px,3.2vw,18px);cursor:pointer;border:2px solid var(--pink-dark);background:#FFF0F8;color:var(--black);text-align:left;line-height:1.8}
-        .newton-box{background:#0A1A2A;border:2px solid var(--sky-dark);padding:8px 11px;margin:9px 0;font-size:clamp(7px,1.8vw,9px);color:#7CFFB0;font-family:'Courier New',monospace;line-height:2;max-height:clamp(80px,22vh,110px);overflow-y:auto;text-align:left}
-        .res-badge{text-align:center;padding:12px;margin:9px 0;font-size:clamp(11px,3.4vw,15px);border:3px solid}
-        .res-det{font-size:clamp(7px,2vw,9px);color:#CCC;line-height:2.2;text-align:center;margin-top:5px;white-space:pre-line}
+        .ti-lbl{font-size:clamp(6px,1.6vw,8px);color:var(--rose-dark);margin-bottom:6px}
+        .ti-val{font-size:clamp(20px,5vw,28px);color:var(--black)}
+        .sel-list{display:flex;flex-direction:column;gap:6px;max-height:clamp(140px,35vh,220px);overflow-y:auto}
+        .sel-item{font-family:var(--px);font-size:clamp(7px,2vw,9px);padding:clamp(10px,2.2vw,13px) clamp(12px,3vw,16px);cursor:pointer;border:2px solid var(--pink-dark);background:#FFF0F8;color:var(--black);text-align:left;line-height:1.8}
+        .sel-item:active{background:var(--pink-light)}
+        .newton-box{background:#0A1A2A;border:2px solid var(--sky-dark);padding:8px 11px;margin:9px 0;font-size:clamp(6px,1.5vw,7.5px);color:#7CFFB0;font-family:'Courier New',monospace;line-height:2;max-height:clamp(70px,20vh,100px);overflow-y:auto;text-align:left}
+        .res-badge{text-align:center;padding:12px;margin:9px 0;font-size:clamp(10px,3vw,14px);border:3px solid}
+        .res-badge.fallido{color:#AAA;border-color:#666;background:#1A1A1A}
+        .res-badge.efectivo{color:var(--gold);border-color:var(--gold-dark);background:#1A1500}
+        .res-badge.devastador{color:var(--rose);border-color:var(--rose-dark);background:#1A0010}
+        .res-det{font-size:clamp(6px,1.6vw,8px);color:#CCC;line-height:2.2;text-align:center;margin-top:5px;white-space:pre-line}
         .turn-msg{background:#0A0A1A;border:4px solid var(--gold);box-shadow:0 0 0 2px var(--gold-dark),0 0 30px rgba(240,192,64,0.3);padding:clamp(20px,4vw,30px) clamp(22px,5vw,36px);text-align:center;width:min(400px,94vw)}
         .tm-icon{font-size:clamp(36px,9vw,52px);margin-bottom:12px}
-        .tm-name{font-size:clamp(11px,3.2vw,15px);color:var(--gold);margin-bottom:10px;line-height:1.8}
-        .tm-msg{font-size:clamp(8px,2.4vw,10px);color:var(--pink-light);line-height:2.4}
+        .tm-name{font-size:clamp(10px,3vw,14px);color:var(--gold);margin-bottom:10px;line-height:1.8}
+        .tm-msg{font-size:clamp(7px,2vw,9px);color:var(--pink-light);line-height:2.4}
 
         /* ══ VICTORIA ══ */
         #s-victoria{background:radial-gradient(ellipse at center,#2A0A30,#0A0010);overflow:hidden}
@@ -408,21 +521,25 @@
 
     <!-- FIX 3: clean map, no grid, no roads -->
     <div class="gmap">
-        <svg id="gmap-svg" viewBox="0 0 100 100" preserveAspectRatio="xMidYMid meet" style="position:absolute;inset:0;width:100%;height:100%">
+        <svg id="gmap-svg" viewBox="0 0 800 560" preserveAspectRatio="xMidYMid slice" style="position:absolute;inset:0;width:100%;height:100%">
             <defs>
                 <radialGradient id="mg" cx="50%" cy="50%" r="60%">
                     <stop offset="0%" stop-color="#5AAA4A"/>
                     <stop offset="100%" stop-color="#2A6A2A"/>
                 </radialGradient>
-                <pattern id="grass" x="0" y="0" width="6" height="6" patternUnits="userSpaceOnUse">
-                    <rect width="6" height="6" fill="none"/>
-                    <rect x="1" y="1" width="1" height="1" fill="rgba(255,255,255,0.05)"/>
-                    <rect x="4" y="3" width="1" height="1" fill="rgba(0,0,0,0.08)"/>
+                <!-- subtle texture pattern -->
+                <pattern id="grass" x="0" y="0" width="8" height="8" patternUnits="userSpaceOnUse">
+                    <rect width="8" height="8" fill="none"/>
+                    <circle cx="2" cy="3" r="0.6" fill="rgba(255,255,255,0.06)"/>
+                    <circle cx="6" cy="6" r="0.5" fill="rgba(255,255,255,0.04)"/>
                 </pattern>
             </defs>
-            <rect width="100" height="100" fill="url(#mg)"/>
-            <rect width="100" height="100" fill="url(#grass)"/>
-            <rect x="1" y="1" width="98" height="98" fill="none" stroke="#F4A7C3" stroke-width="1" stroke-dasharray="6 4" opacity="0.6"/>
+            <!-- Background -->
+            <rect width="800" height="560" fill="url(#mg)"/>
+            <rect width="800" height="560" fill="url(#grass)"/>
+            <!-- Decorative border -->
+            <rect x="3" y="3" width="794" height="554" fill="none" stroke="#F4A7C3" stroke-width="2" stroke-dasharray="10 5" opacity="0.5"/>
+            <!-- Territory shapes drawn dynamically -->
             <g id="terr-shapes"></g>
         </svg>
         <div id="terr-overlay" style="position:absolute;inset:0"></div>
@@ -533,14 +650,14 @@
     /* ══ DATA ══ */
     const TERRS=[{id:0,name:'Valdris'},{id:1,name:'Eryndel'},{id:2,name:'Korrath'},{id:3,name:'Myravel'},{id:4,name:'Ashfen'},{id:5,name:'Solmere'}];
 
-    /* MAP: 3x2 simple layout (centros en %) */
+    /* FIX 3: tighter positions, 2 rows of 3, closer together, bigger hit areas */
     const TPOS=[
-        {x:20, y:28},
-        {x:50, y:28},
-        {x:80, y:28},
-        {x:20, y:70},
-        {x:50, y:70},
-        {x:80, y:70},
+        {l:'8%',  t:'8%'},
+        {l:'38%', t:'5%'},
+        {l:'67%', t:'8%'},
+        {l:'8%',  t:'52%'},
+        {l:'38%', t:'55%'},
+        {l:'67%', t:'52%'},
     ];
 
     const DET=[0,5,7,10,12,15,15], STBT=[0,4,7,10,12,16,16];
@@ -629,80 +746,91 @@
         beginTurn();
     }
 
-    /* ══ MAP — simple pixel tiles ══ */
+    /* ══ MAP — FIX 3: hexagon territories, cleaner ══ */
     function renderMap(){renderShapes();renderBtns()}
 
     function renderShapes(){
-        const svg=document.getElementById('terr-shapes');
-        svg.innerHTML='';
-        const tileW=24;
-        const tileH=18;
-        const notch=2;
+        const svg=document.getElementById('terr-shapes');svg.innerHTML='';
+        const W=800, H=560;
 
         G.territories.forEach((t,i)=>{
             const pos=TPOS[i];
             const c=OC[t.owner];
-            const x=pos.x - tileW/2;
-            const y=pos.y - tileH/2;
+            // Convert % to SVG coords
+            const cx=parseFloat(pos.l)/100*W + 90;
+            const cy=parseFloat(pos.t)/100*H + 90;
+            const rx=88, ry=80;
 
-            const shadow=document.createElementNS('http://www.w3.org/2000/svg','rect');
-            shadow.setAttribute('x',x+1.5);
-            shadow.setAttribute('y',y+1.5);
-            shadow.setAttribute('width',tileW);
-            shadow.setAttribute('height',tileH);
-            shadow.setAttribute('fill','rgba(0,0,0,0.25)');
+            // Hexagon points
+            const pts=[];
+            for(let a=0;a<6;a++){
+                const angle=(Math.PI/180)*(60*a - 30);
+                pts.push(`${cx+rx*Math.cos(angle)},${cy+ry*Math.sin(angle)}`);
+            }
+
+            // Shadow
+            const shadow=document.createElementNS('http://www.w3.org/2000/svg','polygon');
+            shadow.setAttribute('points',pts.map(p=>{const[x,y]=p.split(',');return `${parseFloat(x)+4},${parseFloat(y)+4}`}).join(' '));
+            shadow.setAttribute('fill','rgba(0,0,0,0.3)');
             svg.appendChild(shadow);
 
-            const rect=document.createElementNS('http://www.w3.org/2000/svg','rect');
-            rect.setAttribute('x',x);
-            rect.setAttribute('y',y);
-            rect.setAttribute('width',tileW);
-            rect.setAttribute('height',tileH);
-            rect.setAttribute('fill',c.fill);
-            rect.setAttribute('stroke',c.stroke);
-            rect.setAttribute('stroke-width','1.2');
-            svg.appendChild(rect);
+            // Main hex
+            const hex=document.createElementNS('http://www.w3.org/2000/svg','polygon');
+            hex.setAttribute('points',pts.join(' '));
+            hex.setAttribute('fill',c.fill);
+            hex.setAttribute('stroke',c.stroke);
+            hex.setAttribute('stroke-width','4');
+            svg.appendChild(hex);
 
-            const inner=document.createElementNS('http://www.w3.org/2000/svg','rect');
-            inner.setAttribute('x',x+1.5);
-            inner.setAttribute('y',y+1.5);
-            inner.setAttribute('width',tileW-3);
-            inner.setAttribute('height',tileH-3);
+            // Inner hex border
+            const inner=document.createElementNS('http://www.w3.org/2000/svg','polygon');
+            const ipts=[];
+            for(let a=0;a<6;a++){
+                const angle=(Math.PI/180)*(60*a - 30);
+                ipts.push(`${cx+(rx-10)*Math.cos(angle)},${cy+(ry-10)*Math.sin(angle)}`);
+            }
+            inner.setAttribute('points',ipts.join(' '));
             inner.setAttribute('fill','none');
             inner.setAttribute('stroke',c.stroke);
-            inner.setAttribute('stroke-width','0.6');
-            inner.setAttribute('opacity','0.6');
+            inner.setAttribute('stroke-width','1.5');
+            inner.setAttribute('stroke-dasharray','6 4');
+            inner.setAttribute('opacity','0.5');
             svg.appendChild(inner);
 
-            const banner=document.createElementNS('http://www.w3.org/2000/svg','rect');
-            banner.setAttribute('x',x+notch);
-            banner.setAttribute('y',y+tileH-5);
-            banner.setAttribute('width',tileW-2*notch);
-            banner.setAttribute('height','3.2');
-            banner.setAttribute('fill','rgba(0,0,0,0.18)');
-            svg.appendChild(banner);
-
-            const tower=document.createElementNS('http://www.w3.org/2000/svg','rect');
-            tower.setAttribute('x',x+tileW/2-2);
-            tower.setAttribute('y',y+3);
-            tower.setAttribute('width','4');
-            tower.setAttribute('height','6');
-            tower.setAttribute('fill',c.stroke);
-            tower.setAttribute('opacity','0.6');
-            svg.appendChild(tower);
+            // Pixel castle icon
+            const g2=document.createElementNS('http://www.w3.org/2000/svg','g');
+            g2.setAttribute('fill',c.stroke);g2.setAttribute('opacity','0.55');
+            [[cx-10,cy-8,20,12],[cx-16,cy-18,8,12],[cx+8,cy-18,8,12],[cx-3,cy-24,6,8]].forEach(([x,y,w,h])=>{
+                const r=document.createElementNS('http://www.w3.org/2000/svg','rect');
+                r.setAttribute('x',x);r.setAttribute('y',y);r.setAttribute('width',w);r.setAttribute('height',h);
+                g2.appendChild(r);
+            });
+            svg.appendChild(g2);
         });
     }
 
     function renderBtns(){
-        const cont=document.getElementById('terr-overlay');
-        cont.innerHTML='';
+        const cont=document.getElementById('terr-overlay');cont.innerHTML='';
+        const mapEl=document.querySelector('.gmap');
+        const W=mapEl.offsetWidth||window.innerWidth;
+        const H=mapEl.offsetHeight||(window.innerHeight*0.6);
+        const SVGW=800, SVGH=560;
+        const scale=Math.min(W/SVGW, H/SVGH);
+        const offX=(W-SVGW*scale)/2;
+        const offY=(H-SVGH*scale)/2;
+
         G.territories.forEach((t,i)=>{
             const pos=TPOS[i];
             const c=OC[t.owner];
+            const svgCx=parseFloat(pos.l)/100*SVGW + 90;
+            const svgCy=parseFloat(pos.t)/100*SVGH + 90;
+            const screenX=svgCx*scale+offX;
+            const screenY=svgCy*scale+offY;
+
             const btn=document.createElement('button');
             btn.className='terr-btn';
-            btn.style.left=pos.x+'%';
-            btn.style.top=pos.y+'%';
+            btn.style.left=screenX+'px';
+            btn.style.top=screenY+'px';
             btn.style.transform='translate(-50%,-50%)';
             btn.innerHTML=`<div class="t-lbl" style="border-color:${c.stroke}">${c.flag} ${t.name}</div><div class="t-stats"><span class="t-st">⚔${t.troops}</span><span class="t-st s">🛡${t.stab}</span></div>`;
             btn.onclick=()=>openTerrInfo(i);
@@ -710,6 +838,7 @@
         });
     }
 
+    // Re-render buttons on resize
     window.addEventListener('resize', ()=>{ if(G.territories) renderBtns(); });
 
     /* ══ TURN ══ */
@@ -919,4 +1048,3 @@
 </script>
 </body>
 </html>
-
