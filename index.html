@@ -127,7 +127,7 @@
             flex:1;
             position:relative;
             overflow:hidden;
-            background:#2A6A3A;
+            background:#0F3A5A;
             min-width:0;
             min-height:0;
         }
@@ -513,19 +513,22 @@
 
         <svg id="gmap-svg" viewBox="0 0 800 560" preserveAspectRatio="xMidYMid slice" style="position:absolute;inset:0;width:100%;height:100%">
             <defs>
-                <radialGradient id="mg" cx="50%" cy="50%" r="60%">
-                    <stop offset="0%" stop-color="#5AAA4A"/>
-                    <stop offset="100%" stop-color="#2A6A2A"/>
+                <radialGradient id="ocean" cx="50%" cy="45%" r="65%">
+                    <stop offset="0%" stop-color="#1F6F9C"/>
+                    <stop offset="100%" stop-color="#0F3A5A"/>
                 </radialGradient>
-                <pattern id="grass" x="0" y="0" width="8" height="8" patternUnits="userSpaceOnUse">
-                    <rect width="8" height="8" fill="none"/>
-                    <circle cx="2" cy="3" r="0.6" fill="rgba(255,255,255,0.06)"/>
-                    <circle cx="6" cy="6" r="0.5" fill="rgba(255,255,255,0.04)"/>
+                <pattern id="waves" x="0" y="0" width="18" height="18" patternUnits="userSpaceOnUse">
+                    <path d="M0,6 Q4,2 8,6 T16,6" fill="none" stroke="rgba(255,255,255,0.06)" stroke-width="1"/>
+                    <path d="M0,13 Q4,9 8,13 T16,13" fill="none" stroke="rgba(255,255,255,0.04)" stroke-width="1"/>
+                </pattern>
+                <pattern id="land-texture" x="0" y="0" width="12" height="12" patternUnits="userSpaceOnUse">
+                    <circle cx="3" cy="4" r="1" fill="rgba(255,255,255,0.06)"/>
+                    <circle cx="9" cy="8" r="0.9" fill="rgba(0,0,0,0.08)"/>
                 </pattern>
             </defs>
-            <rect width="800" height="560" fill="url(#mg)"/>
-            <rect width="800" height="560" fill="url(#grass)"/>
-            <rect x="3" y="3" width="794" height="554" fill="none" stroke="#F4A7C3" stroke-width="2" stroke-dasharray="10 5" opacity="0.5"/>
+            <rect width="100%" height="100%" fill="url(#ocean)"/>
+            <rect width="100%" height="100%" fill="url(#waves)"/>
+            <rect x="1.5" y="1.5" width="99.6%" height="99.6%" fill="none" stroke="#F4A7C3" stroke-width="2" stroke-dasharray="10 5" opacity="0.4"/>
             <g id="terr-shapes"></g>
         </svg>
         <div id="terr-overlay" style="position:absolute;inset:0"></div>
@@ -669,7 +672,7 @@
 
     /* ══ STATE ══ */
     let G={};
-    function initState(p1,p2){G={players:[{name:p1||'Guerrero'},{name:p2||'Conquistadora'}],territories:TERRS.map((t,i)=>({...t,owner:i<3?0:1,troops:15,stab:50})),cp:0,total:0,ap:0,rolled:false,dv:0,pc:[]}}
+    function initState(p1,p2){G={players:[{name:p1||'Guerrero'},{name:p2||'Conquistadora'}],territories:TERRS.map((t,i)=>({...t,owner:i<3?0:1,troops:15,stab:50})),cp:0,total:0,ap:0,rolled:false,dv:0,pc:[],pendingConq:[]}}
 
     /* ══ NEWTON ══ */
     function newton(A){
@@ -683,6 +686,8 @@
         }
         return{x,s,ok:true};
     }
+    const A_SCALE=0.5;
+    const DMG_CAP={troops:10,stab:50};
     function cls(x){return x<1.2?'fallido':x<2.8?'efectivo':'devastador'}
 
     /* ══ UI ══ */
@@ -717,8 +722,8 @@
         refuerzos:{title:'Los Refuerzos',text:`Al inicio de tu turno recibes tropas:<br><br><b>Tropas = 2 × territorios que controlas</b><br><br>1 territorio → 2 tropas<br>2 territorios → 4 tropas<br>3 territorios → 6 tropas<br><br>Se asignan a <b>un unico territorio</b> tuyo.`},
         deterioro:{title:'El Deterioro',text:`Un territorio tuyo elegido al <b>azar</b> pierde estabilidad cada turno.<br><br>1 territorio → −5<br>2 territorios → −7<br>3 territorios → −10<br>4 territorios → −12<br>5 o 6 territorios → −15<br><br>Mas poder, mas desgaste interno!`},
         dado:{title:'El Dado Sagrado',text:`Tiras <b>1d6</b>. El resultado son tus <b>puntos de accion</b>.<br><br><b>Atacar</b> cuesta 2 puntos<br><b>Estabilizar</b> cuesta 1 punto<br><br>Con dado 1 → solo estabilizas<br>Con dado 6 → puedes atacar 3 veces<br><br>El dado tambien amplifica la fuerza de tus ataques!`},
-        ataque:{title:'El Sistema de Ataque',text:`Para atacar necesitas 2 puntos.<br><br>Se calcula la <b>ventaja A</b>:<br>F_atac = (tropas × dado)/10 + estab/100<br>F_def = tropas/10 + estab/100<br>A = F_atac − F_def<br><br>Si A <= 0 → fallas (−1 tropa −8 estab)<br>Si A > 0 → se calcula <b>x</b> con Newton<br><br>x &lt; 1.2 → Fallido<br>1.2 &lt;= x &lt; 2.8 → Efectivo<br>x >= 2.8 → Devastador`},
-        newton:{title:'La Magia de Newton',text:`El poder que inviertes en tu ataque (A) no siempre es el dano que recibes. Se utiliza el Metodo de Newton para calcular la Intensidad Real (x) de tu ofensiva.<br><br>Dependiendo de esta intensidad, tu ataque caera en una de estas tres categorias:<br><br><b>Ataque Fallido (x &lt; 1.2)</b><br>Tu estrategia no fue efectiva. Pierdes 1 tropa y 8 de estabilidad.<br><br><b>Ataque Efectivo (1.2 &lt;= x &lt; 2.8)</b><br>Un golpe solido que debilita al enemigo.<br>Dano tropas: x × 2 — Dano estabilidad: x × 10<br><br><b>Ataque Devastador (x >= 2.8)</b><br>Una maniobra maestra! El enemigo sufre grandes perdidas.<br>Dano tropas: x × 3 — Dano estabilidad: x × 15 — Bono: +1 tropa<br><br>Este tipo de ecuaciones no se puede resolver algebraicamente, por eso usamos Metodos Numericos.`},
+        ataque:{title:'El Sistema de Ataque',text:`Para atacar necesitas 2 puntos.<br><br>Se calcula la <b>ventaja A</b>:<br>F_atac = (tropas × dado)/10 + estab/100<br>F_def = tropas/10 + estab/100<br>A = F_atac − F_def<br><br>Se aplica un factor de equilibrio: <b>A' = A × 0.50</b>.<br>Si A' <= 0 → fallas (−1 tropa −8 estab)<br>Si A' > 0 → se calcula <b>x</b> con Newton<br><br>x &lt; 1.2 → Fallido<br>1.2 &lt;= x &lt; 2.8 → Efectivo<br>x >= 2.8 → Devastador`},
+        newton:{title:'La Magia de Newton',text:`El poder que inviertes en tu ataque (A') no siempre es el dano que recibes. Se utiliza el Metodo de Newton para calcular la Intensidad Real (x) de tu ofensiva.<br><br>Dependiendo de esta intensidad, tu ataque caera en una de estas tres categorias:<br><br><b>Ataque Fallido (x &lt; 1.2)</b><br>Tu estrategia no fue efectiva. Pierdes 1 tropa y 8 de estabilidad.<br><br><b>Ataque Efectivo (1.2 &lt;= x &lt; 2.8)</b><br>Un golpe solido que debilita al enemigo.<br>Dano tropas: x × 1.3 — Dano estabilidad: x × 5 (con tope)<br><br><b>Ataque Devastador (x >= 2.8)</b><br>Una maniobra maestra! El enemigo sufre grandes perdidas.<br>Dano tropas: x × 2.0 — Dano estabilidad: x × 8 (con tope) — Bono: +1 tropa<br><br>Los danos tienen un tope: 10 tropas y 50 de estabilidad por ataque.`},
         conquista:{title:'La Conquista',text:`Un territorio cae cuando:<br><br><b>Tropas &lt;= 0</b><br>o<br><b>Estabilidad &lt;= 0</b><br><br>Al ser conquistado pasa a ser tuyo con:<br>• 3 tropas • 20 de estabilidad<br><br>Debil pero crece con refuerzos!`},
         victoria:{title:'Como Ganar',text:`<b>Victoria directa</b> — controla los 6 territorios<br><br><b>Eliminacion</b> — el rival pierde todos sus territorios<br><br><b>Limite</b> — tras 30 turnos gana quien tenga mas territorios. Empate → mayor suma de tropas + estabilidad.<br><br><b>La Gloria eterna aguarda al vencedor!</b>`},
     };
@@ -778,50 +783,131 @@
         const shapes=document.getElementById('terr-shapes');
         shapes.innerHTML='';
 
+        const mkPath=(pts)=>pts.map((p,i)=>`${i?'L':'M'}${p[0].toFixed(2)} ${p[1].toFixed(2)}`).join(' ')+' Z';
+
+        const mkCastlePath=(cx,cy,w,h)=>{
+            const x0=cx-w/2,x1=cx-w*0.35,x2=cx-w*0.2,x3=cx-w*0.05,x4=cx+w*0.05,x5=cx+w*0.2,x6=cx+w*0.35,x7=cx+w/2;
+            const y0=cy-h/2,y1=y0+h*0.22,y2=cy+h/2;
+            return mkPath([
+                [x0,y1],[x0,y0],[x1,y0],[x1,y1],[x2,y1],[x2,y0],[x3,y0],[x3,y1],
+                [x4,y1],[x4,y0],[x5,y0],[x5,y1],[x6,y1],[x6,y0],[x7,y0],[x7,y1],
+                [x7,y2],[x0,y2]
+            ]);
+        };
+
+        const contTop=(()=>{
+            const p=positions.slice(0,3);
+            const xs=p.map(v=>v.cx), ys=p.map(v=>v.cy);
+            const minX=Math.min(...xs), maxX=Math.max(...xs);
+            const minY=Math.min(...ys), maxY=Math.max(...ys);
+            const left=minX-r*1.6, right=maxX+r*1.6;
+            const top=minY-r*1.1, bottom=maxY+r*0.8;
+            const midX=(left+right)/2, midY=(top+bottom)/2;
+            return {top,bottom,left,right,pts:[
+                [left+r*0.4, top],
+                [midX-r*0.2, top-r*0.2],
+                [right-r*0.3, top+r*0.1],
+                [right, midY-r*0.1],
+                [right-r*0.2, bottom-r*0.1],
+                [midX+r*0.4, bottom+r*0.15],
+                [left+r*0.3, bottom-r*0.2],
+                [left, midY+r*0.1]
+            ]};
+        })();
+
+        const contBottom=(()=>{
+            const p=positions.slice(3,6);
+            const xs=p.map(v=>v.cx), ys=p.map(v=>v.cy);
+            const minX=Math.min(...xs), maxX=Math.max(...xs);
+            const minY=Math.min(...ys), maxY=Math.max(...ys);
+            const left=Math.max(r*0.2, minX-r*1.5);
+            const right=Math.min(W-r*0.2, maxX+r*1.2);
+            const top=Math.max(r*0.2, minY-r*0.9);
+            const bottom=Math.min(H-r*0.2, maxY+r*0.9);
+            const midX=(left+right)/2, midY=(top+bottom)/2;
+            return {top,bottom,left,right,pts:[
+                [left+r*0.2, top],
+                [midX-r*0.4, top-r*0.1],
+                [right-r*0.2, top+r*0.2],
+                [right, midY],
+                [right-r*0.3, bottom-r*0.2],
+                [midX+r*0.1, bottom+r*0.2],
+                [midX-r*0.3, bottom+r*0.6],
+                [left+r*0.2, bottom-r*0.1],
+                [left, midY+r*0.1]
+            ]};
+        })();
+
+        const drawCont=(cont,fill,stroke)=>{
+            const coast=document.createElementNS('http://www.w3.org/2000/svg','path');
+            coast.setAttribute('d',mkPath(cont.pts));
+            coast.setAttribute('fill',fill);
+            coast.setAttribute('stroke',stroke);
+            coast.setAttribute('stroke-width','6');
+            shapes.appendChild(coast);
+
+            const inner=document.createElementNS('http://www.w3.org/2000/svg','path');
+            inner.setAttribute('d',mkPath(cont.pts.map(([x,y])=>[x+(x-cont.left)*0.02,y+(y-cont.top)*0.02])));
+            inner.setAttribute('fill','url(#land-texture)');
+            inner.setAttribute('stroke','rgba(0,0,0,0.18)');
+            inner.setAttribute('stroke-width','2');
+            inner.setAttribute('opacity','0.85');
+            shapes.appendChild(inner);
+        };
+
+        drawCont(contTop,'#4B9958','#CFE6A2');
+        drawCont(contBottom,'#4B9958','#CFE6A2');
+
+        const divider=(x,top,bottom)=>{
+            const base=document.createElementNS('http://www.w3.org/2000/svg','line');
+            base.setAttribute('x1',x);base.setAttribute('y1',top);
+            base.setAttribute('x2',x);base.setAttribute('y2',bottom);
+            base.setAttribute('stroke','rgba(0,0,0,0.35)');
+            base.setAttribute('stroke-width','4');
+            base.setAttribute('stroke-linecap','round');
+            shapes.appendChild(base);
+
+            const mid=document.createElementNS('http://www.w3.org/2000/svg','line');
+            mid.setAttribute('x1',x);mid.setAttribute('y1',top);
+            mid.setAttribute('x2',x);mid.setAttribute('y2',bottom);
+            mid.setAttribute('stroke','rgba(255,255,255,0.35)');
+            mid.setAttribute('stroke-width','1.5');
+            mid.setAttribute('stroke-dasharray','8 6');
+            mid.setAttribute('stroke-linecap','round');
+            shapes.appendChild(mid);
+        };
+
+        divider((positions[0].cx+positions[1].cx)/2, contTop.top+r*0.4, contTop.bottom-r*0.2);
+        divider((positions[1].cx+positions[2].cx)/2, contTop.top+r*0.4, contTop.bottom-r*0.2);
+        divider((positions[3].cx+positions[4].cx)/2, contBottom.top+r*0.3, contBottom.bottom-r*0.3);
+        divider((positions[4].cx+positions[5].cx)/2, contBottom.top+r*0.3, contBottom.bottom-r*0.3);
+
+        // Territorios como castillos
         G.territories.forEach((t,i)=>{
             const c=OC[t.owner];
             const {cx,cy}=positions[i];
+            const w=r*1.1,h=r*0.9;
 
-            // Sombra
-            const shadow=document.createElementNS('http://www.w3.org/2000/svg','circle');
-            shadow.setAttribute('cx',cx+3);shadow.setAttribute('cy',cy+4);shadow.setAttribute('r',r);
+            const shadow=document.createElementNS('http://www.w3.org/2000/svg','path');
+            shadow.setAttribute('d',mkCastlePath(cx+4,cy+5,w,h));
             shadow.setAttribute('fill','rgba(0,0,0,0.35)');
             shapes.appendChild(shadow);
 
-            // Círculo principal
-            const circ=document.createElementNS('http://www.w3.org/2000/svg','circle');
-            circ.setAttribute('cx',cx);circ.setAttribute('cy',cy);circ.setAttribute('r',r);
-            circ.setAttribute('fill',c.fill);
-            circ.setAttribute('stroke',c.stroke);
-            circ.setAttribute('stroke-width','3');
-            shapes.appendChild(circ);
+            const castle=document.createElementNS('http://www.w3.org/2000/svg','path');
+            castle.setAttribute('d',mkCastlePath(cx,cy,w,h));
+            castle.setAttribute('fill',c.fill);
+            castle.setAttribute('stroke',c.stroke);
+            castle.setAttribute('stroke-width','3');
+            shapes.appendChild(castle);
 
-            // Círculo interior decorativo
-            const inner=document.createElementNS('http://www.w3.org/2000/svg','circle');
-            inner.setAttribute('cx',cx);inner.setAttribute('cy',cy);inner.setAttribute('r',r-10);
+            const inner=document.createElementNS('http://www.w3.org/2000/svg','path');
+            inner.setAttribute('d',mkCastlePath(cx,cy,w*0.82,h*0.72));
             inner.setAttribute('fill','none');
             inner.setAttribute('stroke',c.stroke);
-            inner.setAttribute('stroke-width','1.2');
+            inner.setAttribute('stroke-width','1.4');
             inner.setAttribute('stroke-dasharray','5 4');
-            inner.setAttribute('opacity','0.45');
+            inner.setAttribute('opacity','0.5');
             shapes.appendChild(inner);
-
-            // Castillo pixelado escalado al radio
-            const s=r/82;
-            const g2=document.createElementNS('http://www.w3.org/2000/svg','g');
-            g2.setAttribute('fill',c.stroke);g2.setAttribute('opacity','0.45');
-            [
-                [cx-10*s, cy-6*s,  20*s, 10*s],
-                [cx-15*s, cy-16*s,  8*s, 12*s],
-                [cx+7*s,  cy-16*s,  8*s, 12*s],
-                [cx-3*s,  cy-22*s,  6*s,  8*s]
-            ].forEach(([x,y,w,h])=>{
-                const rect=document.createElementNS('http://www.w3.org/2000/svg','rect');
-                rect.setAttribute('x',x);rect.setAttribute('y',y);
-                rect.setAttribute('width',w);rect.setAttribute('height',h);
-                g2.appendChild(rect);
-            });
-            shapes.appendChild(g2);
         });
     }
 
@@ -979,7 +1065,10 @@
 
     function execCombat(si,ti){
         const src=G.territories[si],tgt=G.territories[ti],pl=G.players[G.cp];
-        const Fa=(src.troops*G.dv)/10+src.stab/100,Fd=tgt.troops/10+tgt.stab/100,A=Fa-Fd;
+        G.pendingConq=[];
+        const Fa=(src.troops*G.dv)/10+src.stab/100,Fd=tgt.troops/10+tgt.stab/100;
+        const rawA=Fa-Fd;
+        let A=rawA;
         let steps=[
             `F_atac = (${src.troops}x${G.dv})/10 + ${src.stab}/100 = ${Fa.toFixed(3)}`,
             `F_def  = ${tgt.troops}/10 + ${tgt.stab}/100 = ${Fd.toFixed(3)}`,
@@ -987,12 +1076,15 @@
             '─────────────────────────────'
         ];
         let rt,rm,det,xv=0;
+        let captured=false;
         if(A<=0){
             rt='fallido';steps.push('A <= 0 -> Ataque cancelado');
             src.troops=Math.max(0,src.troops-1);src.stab=Math.max(0,src.stab-8);
             rm='ATAQUE FALLIDO';det=`${src.name} pierde 1 tropa y 8 estabilidad.`;
             addLog(`${pl.name} ataca ${tgt.name} -> FALLIDO`,'lc');addLog(pm(FM,{n:pl.name}));
         }else{
+            A=A*A_SCALE;
+            steps.push(`A' = A × ${A_SCALE.toFixed(2)} = ${A.toFixed(4)}`,'─────────────────────────────');
             const nr=newton(A);xv=nr.x;
             steps.push(...nr.s,'─────────────────────────────',`x = ${xv.toFixed(5)}`);
             const c=cls(xv);
@@ -1003,33 +1095,47 @@
                 addLog(`${pl.name} -> FALLIDO (x=${xv.toFixed(2)})`,'lc');addLog(pm(FM,{n:pl.name}));
             }else if(c==='efectivo'){
                 rt='efectivo';rm='ATAQUE EFECTIVO';
-                const td=Math.floor(xv*2),sd=Math.floor(xv*10);
+                const tdRaw=Math.floor(xv*1.3),sdRaw=Math.floor(xv*5);
+                const td=Math.min(tdRaw,DMG_CAP.troops),sd=Math.min(sdRaw,DMG_CAP.stab);
+                const capNote=(td<tdRaw||sd<sdRaw)?`\nCap aplicado: max ${DMG_CAP.troops} tropas, ${DMG_CAP.stab} estabilidad.`:'';
                 tgt.troops=Math.max(0,tgt.troops-td);tgt.stab=Math.max(0,tgt.stab-sd);
-                det=`${tgt.name} pierde ${td} tropas y ${sd} estabilidad.\nfloor(${xv.toFixed(2)}x2)=${td}, floor(${xv.toFixed(2)}x10)=${sd}`;
+                det=`${tgt.name} pierde ${td} tropas y ${sd} estabilidad.\nfloor(${xv.toFixed(2)}x1.3)=${td}, floor(${xv.toFixed(2)}x5)=${sd}${capNote}`;
                 addLog(`${pl.name} -> EFECTIVO en ${tgt.name} (x=${xv.toFixed(2)}, -${td}t -${sd}e)`,'lc');addLog(pm(EM,{n:pl.name}));
             }else{
                 rt='devastador';rm='ATAQUE DEVASTADOR!';
-                const td=Math.floor(xv*3),sd=Math.floor(xv*15);
+                const tdRaw=Math.floor(xv*2.0),sdRaw=Math.floor(xv*8);
+                const td=Math.min(tdRaw,DMG_CAP.troops),sd=Math.min(sdRaw,DMG_CAP.stab);
+                const capNote=(td<tdRaw||sd<sdRaw)?`\nCap aplicado: max ${DMG_CAP.troops} tropas, ${DMG_CAP.stab} estabilidad.`:'';
                 tgt.troops=Math.max(0,tgt.troops-td);tgt.stab=Math.max(0,tgt.stab-sd);src.troops+=1;
-                det=`${tgt.name} pierde ${td} tropas y ${sd} estabilidad.\n${src.name} gana 1 tropa.\nfloor(${xv.toFixed(2)}x3)=${td}, floor(${xv.toFixed(2)}x15)=${sd}`;
+                det=`${tgt.name} pierde ${td} tropas y ${sd} estabilidad.\n${src.name} gana 1 tropa.\nfloor(${xv.toFixed(2)}x2.0)=${td}, floor(${xv.toFixed(2)}x8)=${sd}${capNote}`;
                 addLog(`${pl.name} -> DEVASTADOR en ${tgt.name} (x=${xv.toFixed(2)})`,'lc');addLog(pm(DVM,{n:pl.name}));
+            }
+            if(tgt.troops<=0||tgt.stab<=0){
+                captured=captureTerritory(ti);
+                if(!captured)G.pendingConq.push(ti);
             }
         }
         document.getElementById('cb-header').innerHTML=`<span style="color:#8ADAFF">${src.name}</span> vs <span style="color:#FFA0C8">${tgt.name}</span>`;
         document.getElementById('newton-steps').textContent=steps.join('\n');
         const badge=document.getElementById('res-badge');badge.className='res-badge '+rt;badge.textContent=rm;
         document.getElementById('res-det').textContent=det;
-        spendAP(2);G.pc=[];checkConq();openOv('ov-combat');renderMap();
+        spendAP(2);openOv('ov-combat');renderMap();
+    }
+
+    function captureTerritory(ti){
+        const t=G.territories[ti];
+        if(t.owner===G.cp)return false;
+        t.owner=G.cp;t.troops=3;t.stab=20;
+        addLog(pm(CM,{n:G.players[G.cp].name,t:t.name}),'lq');
+        checkVic();
+        return true;
     }
 
     function closeCombat(){
         closeOv('ov-combat');
-        if(G.pc.length>0){
-            G.pc.forEach(ti=>{
-                const t=G.territories[ti];t.owner=G.cp;t.troops=3;t.stab=20;
-                addLog(pm(CM,{n:G.players[G.cp].name,t:t.name}),'lq');
-            });
-            G.pc=[];renderMap();checkVic();
+        if(G.pendingConq.length>0){
+            G.pendingConq.forEach(ti=>captureTerritory(ti));
+            G.pendingConq=[];renderMap();
         }
     }
 
@@ -1089,3 +1195,13 @@
 </script>
 </body>
 </html>
+
+
+
+
+
+
+
+
+
+
